@@ -1,0 +1,394 @@
+// Event Planning — data model
+// Docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ───────────────────────────  Auth (NextAuth Prisma adapter)  ───────────────────────────
+// Required by @next-auth/prisma-adapter. TeamMember is the app-facing profile and links
+// 1:1 to a User by email on first sign-in.
+
+model User {
+  id            String      @id @default(cuid())
+  name          String?
+  email         String      @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  teamMember    TeamMember?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ───────────────────────────────────  Domain  ───────────────────────────────────
+
+enum EventStatus {
+  DRAFT
+  PLANNING
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PENDING
+  PAID
+  REFUNDED
+}
+
+enum TeamRole {
+  ADMIN
+  ORGANIZER
+  STAFF
+}
+
+enum ViewType {
+  TABLE
+  BOARD
+  TIMELINE
+  CHECKLIST
+  CALENDAR
+  LEDGER
+}
+
+enum FieldType {
+  TEXT
+  LONG_TEXT
+  NUMBER
+  CURRENCY
+  DATE
+  DATETIME
+  DURATION
+  CHECKBOX
+  SELECT
+  MULTI_SELECT
+  LINK
+  EMAIL
+  URL
+  PERSON
+}
+
+/// What a LINK (or PERSON) field can point at. SCREEN_RECORD lets composed screens
+/// reference each other.
+enum LinkTarget {
+  SCHEDULE_ITEM
+  BUDGET_LINE
+  VENDOR
+  TEAM_MEMBER
+  REGISTRANT
+  SCREEN_RECORD
+}
+
+model TeamMember {
+  id     String   @id @default(cuid())
+  name   String
+  email  String   @unique
+  /// Tap-to-call on the day-of view.
+  phone  String?
+  role   TeamRole @default(STAFF)
+  userId String?  @unique
+  user   User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  ownedEvents       Event[]            @relation("EventOwner")
+  eventMemberships  EventMember[]
+  screenDefinitions ScreenDefinition[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Event {
+  id              String      @id @default(cuid())
+  name            String
+  eventDate       DateTime
+  status          EventStatus @default(DRAFT)
+  fundraisingGoal Decimal?    @db.Decimal(12, 2)
+
+  /// Where it happens, and how many seats there are to sell. Both optional: an event
+  /// can be planned before either is known, and the UI hides what isn't set.
+  venue    String?
+  capacity Int?
+
+  // Ordered list of tab keys ("schedule", "budget", … , "screen:<eventScreenId>").
+  // Unknown/stale keys are ignored on read and missing tabs fall back to default order,
+  // so this never needs repairing when tabs are added or removed.
+  tabOrder Json?
+
+  ownerId String
+  owner   TeamMember @relation("EventOwner", fields: [ownerId], references: [id])
+
+  members       EventMember[]
+  scheduleItems ScheduleItem[]
+  budgetLines   BudgetLine[]
+  registrants   Registrant[]
+  screens       ScreenDefinition[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Join table: who is staffed on an event (drives the dashboard "owned or staffed on" list).
+model EventMember {
+  id           String   @id @default(cuid())
+  eventId      String
+  teamMemberId String
+  role         TeamRole @default(STAFF)
+
+  event      Event      @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  teamMember TeamMember @relation(fields: [teamMemberId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, teamMemberId])
+}
+
+model ScheduleItem {
+  id      String @id @default(cuid())
+  eventId String
+  title   String
+
+  // Nullable so a block can exist before it has a slot: these are the "Not yet placed"
+  // items in the run-of-show rail, dragged onto the timeline once their time is known.
+  startTime DateTime?
+  endTime   DateTime?
+
+  location String?
+  notes    String?
+
+  event     Event      @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// A budget line is a container with its own allocation (e.g. "Food" — $3,000). What it
+// actually costs is the sum of its line items; revenue credited to it is derived from
+// PAID registrants pointed at this line, never stored, so it can't drift.
+model BudgetLine {
+  id              String  @id @default(cuid())
+  eventId         String
+  category        String
+  allocatedAmount Decimal @default(0) @db.Decimal(12, 2)
+  notes           String?
+
+  event       Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  lineItems   BudgetLineItem[]
+  registrants Registrant[]
+  vendors     Vendor[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// One spend within a budget line. Planned and actual move independently — planned is what
+// you've committed to, actual is what's left the bank — and the line's remaining budget is
+// reported against both.
+model BudgetLineItem {
+  id            String  @id @default(cuid())
+  budgetLineId  String
+  name          String
+  plannedAmount Decimal @default(0) @db.Decimal(12, 2)
+  actualAmount  Decimal @default(0) @db.Decimal(12, 2)
+  notes         String?
+  position      Int     @default(0)
+
+  budgetLine BudgetLine @relation(fields: [budgetLineId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+
+model Registrant {
+  id            String        @id @default(cuid())
+  eventId       String
+  name          String
+  email         String
+  paymentStatus PaymentStatus @default(UNPAID)
+  amount        Decimal?      @db.Decimal(12, 2)
+  notes         String?
+
+  // Registration revenue posts here — the budget/spreadsheet integration point.
+  budgetLineId String?
+  budgetLine   BudgetLine? @relation(fields: [budgetLineId], references: [id], onDelete: SetNull)
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum VendorStatus {
+  TO_CONTACT
+  AWAITING_REPLY
+  CONFIRMED
+  DECLINED
+}
+
+model Vendor {
+  id           String  @id @default(cuid())
+  budgetLineId String
+  name         String
+  contactEmail String?
+  contactPhone String?
+  notes        String?
+
+  /// Where the conversation stands. `lastContactedAt` is what makes "waiting 9 days"
+  /// answerable — without it there is no way to know a reply is overdue.
+  status          VendorStatus @default(TO_CONTACT)
+  lastContactedAt DateTime?
+
+  budgetLine BudgetLine @relation(fields: [budgetLineId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Anything the team needs to find again — a Drive doc, a contract PDF, or a physical item
+// sitting in a storage unit. Hence both `location` and an optional `url`: not every
+// resource is a link.
+
+
+// ───────────────────────────  User-built screen library  ───────────────────────────
+// A screen is built once as a ScreenDefinition (the blueprint: field set + view config)
+
+/// A composed screen. Belongs to one event, or to a template when eventId is null.
+/// The separate reusable "library" concept is gone: copying a screen between events
+/// copies the definition, which is what templates are for.
+model ScreenDefinition {
+  id         String  @id @default(cuid())
+  eventId    String?
+  event      Event?  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  templateId String? // no Template model yet — see step 7
+
+  name     String
+  icon     String?
+  viewType ViewType
+  position Int     @default(0)
+
+  /// BOARD only: which SELECT field's options become the columns. Null falls back to
+  /// the first SELECT field. Date-driven views (TIMELINE, CALENDAR) need no equivalent
+  /// — they key off the first DATE field, the same way a checklist finds its deadline.
+  groupByFieldKey String?
+
+  /// Seeded with the event rather than hand-built. Still deletable — the flag only
+  /// marks provenance so the UI can say "default screen".
+  isSystem Boolean @default(false)
+
+  fields  FieldDefinition[]
+  records ScreenRecord[]
+
+  createdById String?
+  createdBy   TeamMember? @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([eventId, position])
+}
+
+model FieldDefinition {
+  id       String           @id @default(cuid())
+  screenId String
+  screen   ScreenDefinition @relation(fields: [screenId], references: [id], onDelete: Cascade)
+
+  /// Stable slug, immutable once created. Record values are keyed by this, so renaming
+  /// a field's label never touches stored data.
+  key      String
+  label    String
+  type     FieldType
+  position Int
+  required Boolean   @default(false)
+
+  /// Type-specific config: SELECT choices, number format, and for LINK
+  /// { targetType: LinkTarget, allowMultiple: boolean }.
+  options Json?
+
+  /// Opt-in rollup destination — a BudgetLine id for CURRENCY fields, or the literal
+  /// "RUN_OF_SHOW" for DATE/DATETIME projections onto the event-day timeline.
+  rollupTarget String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([screenId, key])
+}
+
+model ScreenRecord {
+  id       String           @id @default(cuid())
+  screenId String
+  screen   ScreenDefinition @relation(fields: [screenId], references: [id], onDelete: Cascade)
+
+  /// { [fieldKey]: value }. Relationships are NOT read from here — see RecordLink.
+  values   Json
+  position Int   @default(0)
+
+  links RecordLink[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([screenId, position])
+}
+
+/// Materialised relationships. The value also lives in ScreenRecord.values for
+/// rendering, but every *query* — nested tasks on a run-of-show block, "Referenced by"
+/// on a budget line — goes through this table so it can be indexed and traversed both
+/// ways. targetId is deliberately not a foreign key: it points at one of several
+/// tables depending on targetType.
+model RecordLink {
+  id       String       @id @default(cuid())
+  recordId String
+  record   ScreenRecord @relation(fields: [recordId], references: [id], onDelete: Cascade)
+
+  fieldKey   String
+  targetType LinkTarget
+  targetId   String
+
+  createdAt DateTime @default(now())
+
+  @@unique([recordId, fieldKey, targetId])
+  @@index([targetType, targetId])
+}
