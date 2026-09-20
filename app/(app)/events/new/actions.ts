@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { getCurrentTeamMember } from "@/lib/current-team-member";
 import { prisma } from "@/lib/prisma";
 import { seedDefaultScreens } from "@/lib/default-screens";
+import { applyTemplateToEvent } from "@/lib/templates";
 
 export async function createEvent(formData: FormData) {
   const me = await getCurrentTeamMember();
@@ -15,6 +16,7 @@ export async function createEvent(formData: FormData) {
   const fundraisingGoal = String(formData.get("fundraisingGoal") ?? "").trim();
   const venue = String(formData.get("venue") ?? "").trim();
   const capacity = String(formData.get("capacity") ?? "").trim();
+  const templateId = String(formData.get("templateId") ?? "").trim();
 
   if (!name || !eventDate) {
     throw new Error("Name and date are required.");
@@ -33,7 +35,13 @@ export async function createEvent(formData: FormData) {
         ownerId: me.id,
       },
     });
-    await seedDefaultScreens(tx, created.id, me.id);
+    // A template supplies its own screens (defaults included). "Start blank" still gets
+    // the defaults, so a new event is never an empty shell either way.
+    if (templateId) {
+      await applyTemplateToEvent(tx, templateId, created.id, me.id);
+    } else {
+      await seedDefaultScreens(tx, created.id, me.id);
+    }
     return created;
   });
 

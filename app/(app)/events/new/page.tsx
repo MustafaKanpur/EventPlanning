@@ -1,13 +1,26 @@
 import Link from "next/link";
 
+import { prisma } from "@/lib/prisma";
+import { ensureBuiltInTemplates } from "@/lib/templates";
 import { PageHeader } from "@/components/ui";
 import { createEvent } from "./actions";
+import { TemplatePicker } from "./template-picker";
 
 const field =
   "w-full border border-rule bg-panel px-3 py-2 text-[14px] text-ink focus:border-accent focus:outline-none";
 const label = "mb-1 block text-[12.5px] text-ink-muted";
 
-export default function NewEventPage() {
+export default async function NewEventPage({
+  searchParams,
+}: {
+  searchParams: { template?: string };
+}) {
+  await ensureBuiltInTemplates();
+  const templates = await prisma.template.findMany({
+    include: { _count: { select: { screens: true } } },
+    orderBy: [{ isBuiltIn: "desc" }, { name: "asc" }],
+  });
+
   return (
     <div className="max-w-2xl space-y-8">
       <PageHeader
@@ -77,6 +90,8 @@ export default function NewEventPage() {
             </p>
           </div>
         </div>
+
+        <TemplatePicker templates={templates} preselect={searchParams.template} />
 
         <div className="flex items-center gap-4 border-t border-rule pt-5">
           <button

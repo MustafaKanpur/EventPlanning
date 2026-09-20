@@ -26,5 +26,7 @@ export type BuilderScreenInput = {
   viewType: ViewType;
   /** BOARD only: which SELECT field's options become the columns. */
   groupByFieldKey?: string | null;
+  /** Saved but not yet shown as a tab. */
+  isDraft?: boolean;
   fields: BuilderField[];
 };

@@ -44,8 +44,9 @@ export default async function EditScreenPage({
             {screen.name}
           </h1>
           <p className="mt-1 text-[13px] text-ink-muted">
-            Renaming a field keeps its stored values — they&apos;re keyed by a slug, not the
-            label.
+            {screen.isDraft
+              ? "Draft — not shown as a tab until you save it properly."
+              : "Renaming a field keeps its stored values — they're keyed by a slug, not the label."}
           </p>
         </div>
         <Link

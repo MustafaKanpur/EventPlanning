@@ -135,6 +135,7 @@ export async function createScreen(
         name: input.name.trim(),
         icon: input.icon || null,
         viewType: input.viewType,
+        isDraft: input.isDraft ?? false,
         position: count,
         createdById: me.id,
       },
@@ -148,7 +149,11 @@ export async function createScreen(
   });
 
   revalidatePath(`/events/${input.eventId}`, "layout");
-  redirect(`/events/${input.eventId}/screens/${screen.id}`);
+  redirect(
+    input.isDraft
+      ? `/builder/${screen.id}/edit`
+      : `/events/${input.eventId}/screens/${screen.id}`,
+  );
 }
 
 export async function updateScreen(
@@ -164,7 +169,12 @@ export async function updateScreen(
   await prisma.$transaction(async (tx) => {
     await tx.screenDefinition.update({
       where: { id: screenId },
-      data: { name: input.name.trim(), icon: input.icon || null, viewType: input.viewType },
+      data: {
+        name: input.name.trim(),
+        icon: input.icon || null,
+        viewType: input.viewType,
+        isDraft: input.isDraft ?? false,
+      },
     });
     const storedKey = await syncFields(tx, screenId, input.fields);
     await tx.screenDefinition.update({
@@ -178,7 +188,9 @@ export async function updateScreen(
   });
 
   revalidatePath(`/events/${input.eventId}`, "layout");
-  redirect(`/events/${input.eventId}/screens/${screenId}`);
+  redirect(
+    input.isDraft ? `/builder/${screenId}/edit` : `/events/${input.eventId}/screens/${screenId}`,
+  );
 }
 
 export async function deleteScreen(eventId: string, screenId: string) {

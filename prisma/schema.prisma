@@ -85,6 +85,26 @@ enum TeamRole {
   STAFF
 }
 
+/// A named bundle of screen definitions with no records — the reuse story for teams
+/// running the same event every year, and the onboarding path for new ones.
+model Template {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  /// Shipped with the app. Seeded on demand and never deleted by a user.
+  isBuiltIn   Boolean @default(false)
+  /// Stable identifier for built-ins, so re-seeding updates rather than duplicates.
+  slug        String? @unique
+
+  createdById String?
+  createdBy   TeamMember? @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  screens ScreenDefinition[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 enum ViewType {
   TABLE
   BOARD
@@ -138,6 +158,8 @@ model TeamMember {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  templates         Template[]
+
 }
 
 model Event {
@@ -301,7 +323,8 @@ model ScreenDefinition {
   id         String  @id @default(cuid())
   eventId    String?
   event      Event?  @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  templateId String? // no Template model yet — see step 7
+  templateId String?
+  template   Template? @relation(fields: [templateId], references: [id], onDelete: Cascade)
 
   name     String
   icon     String?
@@ -316,6 +339,11 @@ model ScreenDefinition {
   /// Seeded with the event rather than hand-built. Still deletable — the flag only
   /// marks provenance so the UI can say "default screen".
   isSystem Boolean @default(false)
+
+  /// A screen still being built. It exists and is editable, but stays out of the event's
+  /// tab bar until it is saved properly — which is what "save as draft" now means, the
+  /// library it used to mean having been removed.
+  isDraft Boolean @default(false)
 
   fields  FieldDefinition[]
   records ScreenRecord[]

@@ -274,8 +274,7 @@ export default async function DashboardPage() {
           <tfoot>
             <tr className="border-t border-rule">
               <td colSpan={6} className="px-4 py-3">
-                {/* Templates arrive in step 7; until then this starts a blank event. */}
-                <Link href="/events/new" className="text-[13px] text-accent hover:underline">
+                <Link href="/templates" className="text-[13px] text-accent hover:underline">
                   Start an event from a template →
                 </Link>
               </td>

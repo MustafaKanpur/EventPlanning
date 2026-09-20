@@ -44,7 +44,7 @@ export default async function EventLayout({
 
   // Tabs come from the event's composed screens now, ordered by position.
   const screens = await prisma.screenDefinition.findMany({
-    where: { eventId: event.id },
+    where: { eventId: event.id, isDraft: false },
     select: { id: true, name: true, icon: true },
     orderBy: [{ position: "asc" }, { createdAt: "asc" }],
   });

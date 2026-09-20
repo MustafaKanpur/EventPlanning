@@ -15,7 +15,7 @@ export type NavItem = { label: string; href: string };
 export const DEFAULT_NAV: NavItem[] = [
   { label: "Events", href: "/dashboard" },
   { label: "People", href: "/team" },
-  // Templates land in step 7; screens are built per event from the "+ New screen" tab.
+  { label: "Templates", href: "/templates" },
 ];
 
 export function TopBar({
