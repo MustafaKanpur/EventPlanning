@@ -3,59 +3,84 @@
 import { useState, type FormEvent } from "react";
 import { signIn } from "next-auth/react";
 
+type State = { status: "idle" | "sending" | "sent" } | { status: "error"; message: string };
+
 export default function SignInPage() {
   const [email, setEmail] = useState("");
-  const [emailSent, setEmailSent] = useState(false);
+  const [state, setState] = useState<State>({ status: "idle" });
 
   async function handleEmailSignIn(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    await signIn("email", { email, redirect: false, callbackUrl: "/dashboard" });
-    setEmailSent(true);
+    setState({ status: "sending" });
+
+    // The old version set "check your email" unconditionally, so a failed send looked
+    // identical to a successful one — which is how a missing SMTP config hid itself.
+    const result = await signIn("email", { email, redirect: false, callbackUrl: "/dashboard" });
+
+    if (!result || result.error) {
+      setState({
+        status: "error",
+        message:
+          "We couldn't send the link. The mail server may not be configured — check the server logs.",
+      });
+      return;
+    }
+    setState({ status: "sent" });
   }
 
   return (
-    <div className="w-full max-w-sm space-y-8 rounded-2xl border border-white/10 bg-panel p-8 ">
+    <div className="w-full max-w-sm space-y-8 border border-rule bg-panel p-8">
       <div className="space-y-2 text-center">
-        <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-accent text-lg text-warn">
-          ✦
-        </div>
-        <h1 className="text-xl font-semibold tracking-tight text-ink">Event Planning</h1>
-        <p className="text-sm text-ink-muted">Sign in to your team workspace</p>
+        <h1 className="font-display text-[26px] font-normal leading-tight text-ink">
+          Event Planning
+        </h1>
+        <p className="text-[13px] text-ink-muted">Sign in to your team workspace</p>
       </div>
 
       <button
+        type="button"
         onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
-        className="flex w-full items-center justify-center gap-2 rounded-[3px] border border-rule bg-panel px-4 py-2 text-sm font-medium text-ink transition hover:border-rule hover:bg-panel-alt"
+        className="flex h-11 w-full items-center justify-center border border-rule bg-panel px-4 text-ui text-ink transition-colors hover:bg-panel-alt"
       >
         Continue with Google
       </button>
 
       <div className="flex items-center gap-3">
-        <div className="h-px flex-1 bg-gray-200" />
-        <span className="text-xs uppercase tracking-wide text-ink-muted">or</span>
-        <div className="h-px flex-1 bg-gray-200" />
+        <div className="h-px flex-1 bg-rule" />
+        <span className="text-micro uppercase text-ink-muted">or</span>
+        <div className="h-px flex-1 bg-rule" />
       </div>
 
-      {emailSent ? (
-        <p className="rounded-[3px] bg-green-50 px-4 py-3 text-sm text-green-700">
+      {state.status === "sent" ? (
+        <p className="border border-rule bg-panel-alt px-4 py-3 text-[13px] text-ink">
           Check your email for a sign-in link.
         </p>
       ) : (
         <form onSubmit={handleEmailSignIn} className="space-y-3">
+          <label className="sr-only" htmlFor="signin-email">
+            Email address
+          </label>
           <input
+            id="signin-email"
             type="email"
             required
             placeholder="you@organization.org"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-[3px] border border-rule px-3 py-2 text-sm focus:border-accent focus:outline-none "
+            className="h-11 w-full border border-rule bg-panel px-3 text-[13px] text-ink focus:border-accent focus:outline-none"
           />
           <button
             type="submit"
-            className="w-full rounded-[3px] bg-accent px-4 py-2 text-sm font-medium text-panel transition hover:opacity-90"
+            disabled={state.status === "sending"}
+            className="h-11 w-full bg-accent px-4 text-ui text-panel transition-opacity hover:opacity-90 disabled:opacity-60"
           >
-            Send magic link
+            {state.status === "sending" ? "Sending…" : "Send magic link"}
           </button>
+          {state.status === "error" && (
+            <p className="border border-rule px-3 py-2 text-[13px] text-danger" role="alert">
+              {state.message}
+            </p>
+          )}
         </form>
       )}
     </div>
