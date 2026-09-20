@@ -3,6 +3,8 @@
 import { useState, type FormEvent } from "react";
 import { signIn } from "next-auth/react";
 
+import { enterWithoutSigningIn } from "./guest-actions";
+
 type State = { status: "idle" | "sending" | "sent" } | { status: "error"; message: string };
 
 export default function SignInPage() {
@@ -49,6 +51,22 @@ export default function SignInPage() {
         <div className="h-px flex-1 bg-rule" />
         <span className="text-micro uppercase text-ink-muted">or</span>
         <div className="h-px flex-1 bg-rule" />
+      </div>
+
+      {/* Temporary: real sign-in is unfinished, so this mints a session directly.
+          Remove this block and guest-actions.ts to close the door. */}
+      <div className="border-t border-rule pt-5">
+        <form action={enterWithoutSigningIn}>
+          <button
+            type="submit"
+            className="h-11 w-full border border-rule bg-panel px-4 text-ui text-ink transition-colors hover:bg-panel-alt"
+          >
+            Continue without signing in →
+          </button>
+        </form>
+        <p className="mt-2 text-center text-meta text-ink-muted">
+          Temporary access while sign-in is being finished. Anyone with this link gets in.
+        </p>
       </div>
 
       {state.status === "sent" ? (
