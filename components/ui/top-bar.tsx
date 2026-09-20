@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { formatShortDate, initialsFrom } from "@/lib/format";
+import { IconGitHub } from "./icon";
 
 export type NavItem = { label: string; href: string };
 
@@ -39,9 +40,21 @@ export function TopBar({
     <header className="h-bar border-b border-rule bg-panel">
       <div className="mx-auto flex h-full max-w-6xl items-center justify-between gap-6 px-6">
         <div className="flex items-center gap-8">
-          <Link href="/dashboard" className="font-display text-[19px] leading-none text-ink">
-            Event Planning
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href="/dashboard" className="font-display text-[19px] leading-none text-ink">
+              Event Planning
+            </Link>
+            <a
+              href="https://github.com/MustafaKanpur/EventPlanning"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Source code on GitHub"
+              title="Source on GitHub"
+              className="flex h-11 w-9 items-center justify-center text-ink-muted transition-colors hover:text-ink"
+            >
+              <IconGitHub size={16} />
+            </a>
+          </div>
           <nav aria-label="Primary">
             <ul className="flex items-center gap-6">
               {nav.map((item) => {
