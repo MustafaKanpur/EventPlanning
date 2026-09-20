@@ -2,22 +2,46 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Tokens are mirrored as CSS variables so they can be used where a Tailwind class
+ * can't reach — inline `style` on a computed bar segment, an SVG stroke, a gradient
+ * stop we don't have. Keep these in step with tailwind.config.ts.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --ground: #f7f5ef;
+  --panel: #fffdf8;
+  --panel-alt: #f2efe6;
+  --ink: #1c1b18;
+  --ink-muted: #6a675f;
+  --rule: #d8d2c3;
+  --rule-soft: #ebe6da;
+  --accent: #2a5547;
+  --warn: #8a6a1f;
+  --danger: #a33a1f;
+  --success: #6e8f5e;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-archivo), ui-sans-serif, sans-serif;
+}
+
+/* Numbers that sit in a column must not jitter between values. */
+.font-mono,
+table {
+  font-variant-numeric: tabular-nums;
+}
+
+/* One visible focus treatment everywhere, in the accent rather than the browser blue. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: #dfe7e1;
+  color: var(--ink);
 }
 
 @layer utilities {
