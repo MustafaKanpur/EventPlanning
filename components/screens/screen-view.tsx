@@ -358,6 +358,7 @@ function ChecklistView({
   if (!shape) return <TableView eventId={eventId} screen={screen} linkOptions={linkOptions} />;
 
   const titleKey = titleKeyOf(screen.fields);
+  const titleField = screen.fields.find((f) => f.key === titleKey);
   const progress = checklistProgress(screen.records, shape);
   const doneField = screen.fields.find((f) => f.key === shape.doneKey)!;
   const detailFields = screen.fields.filter(
@@ -389,6 +390,31 @@ function ChecklistView({
           </p>
         ) : (
           <ul className="divide-y divide-rule-soft">
+            {/* Column headers. The widths mirror the row below exactly, including an
+                invisible copy of the Delete label so the trailing column cannot drift
+                out of alignment when that label changes. Hidden on narrow screens,
+                where the row wraps and headers would line up with the wrong cells. */}
+            <li
+              aria-hidden="true"
+              className="hidden h-head flex-wrap items-center gap-2 border-b border-rule bg-panel-alt px-2 sm:flex"
+            >
+              <span className="flex w-[60px] shrink-0 items-center px-2 text-micro uppercase text-ink-muted">
+                {doneField.label}
+              </span>
+              <span className="min-w-[12rem] flex-1 text-micro uppercase text-ink-muted">
+                {titleField?.label ?? "Item"}
+              </span>
+              {detailFields.map((f) => (
+                <span
+                  key={f.id}
+                  className="w-36 shrink-0 px-2 text-micro uppercase text-ink-muted"
+                >
+                  {f.label}
+                </span>
+              ))}
+              <span className="invisible shrink-0 px-2 text-meta">Delete</span>
+            </li>
+
             {screen.records.map((record) => {
               const values = valuesOf(record);
               const overdue = isRecordOverdue(values, shape);

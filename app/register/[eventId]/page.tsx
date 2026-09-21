@@ -39,8 +39,8 @@ export default async function PublicRegistrationPage({
             This event has been cancelled. Registration is closed.
           </p>
         ) : submitted ? (
-          <p className="rounded-[3px] bg-green-50 px-4 py-3 text-center text-sm text-green-700">
-            You&apos;re registered! A member of our team will follow up with any next steps.
+          <p className="border border-rule bg-panel-alt px-4 py-3 text-center text-sm text-ink">
+            You&apos;re registered.
           </p>
         ) : (
           <form action={register} className="space-y-4">
@@ -107,7 +107,7 @@ export default async function PublicRegistrationPage({
             </button>
 
             <p className="text-center text-xs text-ink-muted">
-              Payment isn&apos;t collected here yet — our team will follow up to complete it.
+              Payment isn&apos;t collected here yet.
             </p>
           </form>
         )}
