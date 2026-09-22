@@ -37,6 +37,7 @@ import {
 import { LINK_TARGET_LABELS } from "@/lib/link-targets";
 import { ViewPreview } from "@/components/screens/view-preview";
 import { createScreen, updateScreen } from "./actions";
+import { saveRegistrationForm } from "@/app/(app)/events/[eventId]/registrants/form-actions";
 import type { BuilderField, BuilderScreenInput } from "./types";
 
 const field =
@@ -385,6 +386,14 @@ export type ScreenBuilderProps = {
   initialFields?: BuilderField[];
   budgetLines?: { id: string; category: string }[];
   discardSlot?: React.ReactNode;
+  /**
+   * "registration" builds the event's public sign-up form instead of a screen: the same
+   * canvas and drag-and-drop, minus the parts a public form has no use for — view type,
+   * rollups, and any field that points at internal records.
+   */
+  mode?: "screen" | "registration";
+  /** Restricts the palette. Defaults to everything. */
+  allowedTypes?: FieldType[];
 };
 
 export function ScreenBuilder({
@@ -397,7 +406,10 @@ export function ScreenBuilder({
   initialFields,
   budgetLines = [],
   discardSlot,
+  mode = "screen",
+  allowedTypes,
 }: ScreenBuilderProps) {
+  const isRegistration = mode === "registration";
   const [name, setName] = useState(initialName);
   const [icon, setIcon] = useState(initialIcon);
   const [viewType, setViewType] = useState<ViewType>(initialViewType);
@@ -480,7 +492,7 @@ export function ScreenBuilder({
 
   function submit(asDraft: boolean) {
     setError(null);
-    if (!name.trim()) {
+    if (!isRegistration && !name.trim()) {
       setError("Give the screen a name.");
       return;
     }
@@ -500,7 +512,11 @@ export function ScreenBuilder({
     };
 
     startTransition(async () => {
-      const result = definitionId ? await updateScreen(definitionId, input) : await createScreen(input);
+      const result = isRegistration
+        ? await saveRegistrationForm(eventId, definitionId!, fields)
+        : definitionId
+          ? await updateScreen(definitionId, input)
+          : await createScreen(input);
       if (result?.error) setError(result.error);
     });
   }
@@ -519,8 +535,10 @@ export function ScreenBuilder({
         <div className="min-w-0 space-y-8">
           {/* ── 1 · what it is ───────────────────────────────────────────── */}
           <section>
-            <h2 className="text-micro uppercase text-ink-muted">1 · Screen</h2>
-            <div className="mt-2 flex flex-wrap items-end gap-3">
+            <h2 className="text-micro uppercase text-ink-muted">
+              {isRegistration ? "1 · The form" : "1 · Screen"}
+            </h2>
+            <div className={`mt-2 flex flex-wrap items-end gap-3 ${isRegistration ? "hidden" : ""}`}>
               <div className="space-y-1">
                 <label className="block text-caption text-ink-muted" htmlFor="screen-icon">
                   Icon
@@ -549,6 +567,8 @@ export function ScreenBuilder({
               </div>
             </div>
 
+            {!isRegistration && (
+              <>
             <p className="mt-4 text-caption text-ink-muted">
               How should these records be shown? This is the bigger decision — it decides
               which fields are worth having.
@@ -575,7 +595,7 @@ export function ScreenBuilder({
               })}
             </div>
 
-            {viewType === "BOARD" && (
+            {viewType === "BOARD" && !isRegistration && (
               <div className="mt-3 flex items-center gap-2">
                 <label className="text-caption text-ink-muted" htmlFor="group-by">
                   Group columns by
@@ -595,6 +615,8 @@ export function ScreenBuilder({
                 </select>
               </div>
             )}
+              </>
+            )}
           </section>
 
           {/* ── 2 · fields ───────────────────────────────────────────────── */}
@@ -604,8 +626,17 @@ export function ScreenBuilder({
               <div className="space-y-4">
                 {/* Connections first and tinted: linking to the rest of the event is what
                     separates this from a spreadsheet, so it should not be buried. */}
-                {[...FIELD_GROUPS].reverse().map((group) => {
-                  const primary = group.label === "Connections";
+                {[...FIELD_GROUPS]
+                  .reverse()
+                  .map((group) => ({
+                    ...group,
+                    types: allowedTypes
+                      ? group.types.filter((t) => allowedTypes.includes(t))
+                      : group.types,
+                  }))
+                  .filter((group) => group.types.length > 0)
+                  .map((group) => {
+                  const primary = group.label === "Connections" && !isRegistration;
                   return (
                     <div key={group.label} className="space-y-2">
                       <p
@@ -652,20 +683,24 @@ export function ScreenBuilder({
             >
               {isPending ? "Saving…" : definitionId ? "Save screen" : "Create screen"}
             </button>
-            <button
-              type="button"
-              onClick={() => submit(true)}
-              disabled={isPending}
-              className="h-11 border border-rule px-4 text-ui text-ink transition-colors hover:bg-panel-alt disabled:opacity-50"
-            >
-              Save as draft
-            </button>
+            {!isRegistration && (
+              <button
+                type="button"
+                onClick={() => submit(true)}
+                disabled={isPending}
+                className="h-11 border border-rule px-4 text-ui text-ink transition-colors hover:bg-panel-alt disabled:opacity-50"
+              >
+                Save as draft
+              </button>
+            )}
             {discardSlot}
           </div>
-          <p className="text-meta text-ink-muted">
-            A draft is editable but stays out of the event&apos;s tabs until you save it
-            properly.
-          </p>
+          {!isRegistration && (
+            <p className="text-meta text-ink-muted">
+              A draft is editable but stays out of the event&apos;s tabs until you save it
+              properly.
+            </p>
+          )}
         </div>
 
         {/* ── live preview ───────────────────────────────────────────────── */}

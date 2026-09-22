@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 
 import { prisma } from "@/lib/prisma";
+import { getRegistrationForm } from "@/lib/registration-form";
+import { CustomFields } from "./custom-fields";
 import { registerForEvent } from "./actions";
 
 export default async function PublicRegistrationPage({
@@ -14,6 +16,7 @@ export default async function PublicRegistrationPage({
   if (!event) notFound();
 
   const submitted = searchParams.success === "1";
+  const form = await getRegistrationForm(event.id);
   const register = registerForEvent.bind(null, event.id);
 
   return (
@@ -98,6 +101,8 @@ export default async function PublicRegistrationPage({
                 />
               </div>
             </div>
+
+            <CustomFields fields={form?.fields ?? []} />
 
             <button
               type="submit"

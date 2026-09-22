@@ -272,6 +272,11 @@ model Registrant {
   amount        Decimal?      @db.Decimal(12, 2)
   notes         String?
 
+  /// Answers to the event's custom registration questions, keyed by FieldDefinition.key
+  /// — the same convention as ScreenRecord.values, so renaming a question's label never
+  /// touches the answers already collected.
+  answers Json?
+
   // Registration revenue posts here — the budget/spreadsheet integration point.
   budgetLineId String?
   budgetLine   BudgetLine? @relation(fields: [budgetLineId], references: [id], onDelete: SetNull)
@@ -344,6 +349,12 @@ model ScreenDefinition {
   /// tab bar until it is saved properly — which is what "save as draft" now means, the
   /// library it used to mean having been removed.
   isDraft Boolean @default(false)
+
+  /// This screen's fields describe the event's public registration form rather than a
+  /// tab. Registration itself stays a native page — payment status, revenue posting —
+  /// but the questions it asks are composed from the same FieldDefinitions users get
+  /// everywhere else. Kept off the tab bar; edited from the Registration screen.
+  isRegistrationForm Boolean @default(false)
 
   fields  FieldDefinition[]
   records ScreenRecord[]

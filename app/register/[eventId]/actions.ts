@@ -2,7 +2,10 @@
 
 import { redirect } from "next/navigation";
 
+import type { Prisma } from "@prisma/client";
+
 import { prisma } from "@/lib/prisma";
+import { getRegistrationForm, parseAnswers } from "@/lib/registration-form";
 
 // Public, unauthenticated action — anyone with the event link can call this.
 export async function registerForEvent(eventId: string, formData: FormData) {
@@ -25,6 +28,18 @@ export async function registerForEvent(eventId: string, formData: FormData) {
     throw new Error("This event is not accepting registrations.");
   }
 
+  // Custom questions are read from the event's own form definition, so a public
+  // submission can only write answers the organiser actually asked for.
+  const form = await getRegistrationForm(eventId);
+  const answers = form ? parseAnswers(form.fields, formData) : null;
+
+  const missing = form?.fields.find(
+    (f) => f.required && (answers?.[f.key] === null || answers?.[f.key] === undefined),
+  );
+  if (missing) {
+    throw new Error(`${missing.label} is required.`);
+  }
+
   await prisma.registrant.create({
     data: {
       eventId,
@@ -32,6 +47,7 @@ export async function registerForEvent(eventId: string, formData: FormData) {
       email,
       amount: amount || null,
       paymentStatus: "PENDING",
+      answers: (answers ?? undefined) as Prisma.InputJsonValue | undefined,
     },
   });
 

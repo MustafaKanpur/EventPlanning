@@ -3,6 +3,15 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { formatMoney } from "@/lib/format";
 import { MicroBar, Money, StatusDot, toneForStatus } from "@/components/ui";
+import {
+  answersOf,
+  choicesOf,
+  displayAnswer,
+  filterParam,
+  getRegistrationForm,
+  matchesFilters,
+  readFilters,
+} from "@/lib/registration-form";
 import { updateRegistrant } from "./actions";
 import { CopyLink } from "./copy-link";
 
@@ -13,10 +22,16 @@ const field =
 /** Unpaid first — they're the ones needing chasing — then by newest registration. */
 const SORT_WEIGHT: Record<string, number> = { UNPAID: 0, PENDING: 1, PAID: 2, REFUNDED: 3 };
 
-export default async function RegistrationPage({ params }: { params: { eventId: string } }) {
+export default async function RegistrationPage({
+  params,
+  searchParams,
+}: {
+  params: { eventId: string };
+  searchParams: Record<string, string | string[] | undefined>;
+}) {
   const { eventId } = params;
 
-  const [event, registrants, budgetLines] = await Promise.all([
+  const [event, registrants, budgetLines, form] = await Promise.all([
     prisma.event.findUnique({
       where: { id: eventId },
       select: { capacity: true, name: true },
@@ -27,15 +42,21 @@ export default async function RegistrationPage({ params }: { params: { eventId: 
       orderBy: { createdAt: "desc" },
     }),
     prisma.budgetLine.findMany({ where: { eventId }, orderBy: { category: "asc" } }),
+    getRegistrationForm(eventId),
   ]);
 
-  const sorted = [...registrants].sort(
+  // Custom questions become columns, and each one becomes a filter.
+  const customFields = form?.fields ?? [];
+  const filters = readFilters(customFields, searchParams);
+  const visible = registrants.filter((r) => matchesFilters(answersOf(r), filters));
+
+  const sorted = [...visible].sort(
     (a, b) => (SORT_WEIGHT[a.paymentStatus] ?? 9) - (SORT_WEIGHT[b.paymentStatus] ?? 9),
   );
 
-  const paid = registrants.filter((r) => r.paymentStatus === "PAID");
+  const paid = visible.filter((r) => r.paymentStatus === "PAID");
   const revenue = paid.reduce((sum, r) => sum + Number(r.amount ?? 0), 0);
-  const outstanding = registrants
+  const outstanding = visible
     .filter((r) => r.paymentStatus === "UNPAID" || r.paymentStatus === "PENDING")
     .reduce((sum, r) => sum + Number(r.amount ?? 0), 0);
   const capacity = event?.capacity ?? null;
@@ -53,7 +74,7 @@ export default async function RegistrationPage({ params }: { params: { eventId: 
       <section className="flex flex-wrap items-end justify-between gap-6 border-b border-rule pb-6">
         <div>
           <p className="font-mono text-[34px] leading-none tabular-nums text-ink">
-            {registrants.length}
+            {visible.length}
             {capacity !== null && <span className="text-ink-muted"> / {capacity}</span>}
           </p>
           <p className="mt-1.5 text-[13px] text-ink-muted">
@@ -72,7 +93,7 @@ export default async function RegistrationPage({ params }: { params: { eventId: 
           </p>
           {capacity !== null && (
             <MicroBar
-              value={registrants.length}
+              value={visible.length}
               max={capacity}
               color={registrants.length >= capacity ? "warn" : "success"}
               className="mt-3 w-64"
@@ -95,33 +116,139 @@ export default async function RegistrationPage({ params }: { params: { eventId: 
         <div className="space-y-1">
           <p className="text-micro uppercase text-ink-muted">Public registration link</p>
           <CopyLink url={registrationUrl} />
+          <p className="pt-1 text-right">
+            <Link
+              href={`/events/${eventId}/registrants/form`}
+              className="text-ui text-ink-muted transition-colors hover:text-ink"
+            >
+              Customise form
+              {customFields.length > 0 && (
+                <span className="text-ink-muted"> · {customFields.length} extra question
+                  {customFields.length === 1 ? "" : "s"}</span>
+              )}
+            </Link>
+          </p>
         </div>
       </section>
+
+      {customFields.length > 0 && (
+        <form method="GET" className="flex flex-wrap items-end gap-3 border-b border-rule pb-4">
+          <p className="text-micro uppercase text-ink-muted">Filter</p>
+          {customFields.map((f) => {
+            const current = filters.find((x) => x.field.key === f.key)?.value ?? "";
+            const id = `filter-${f.key}`;
+            if (f.type === "SELECT" || f.type === "MULTI_SELECT") {
+              return (
+                <div key={f.id} className="space-y-1">
+                  <label className="block text-caption text-ink-muted" htmlFor={id}>
+                    {f.label}
+                  </label>
+                  <select
+                    id={id}
+                    name={filterParam(f)}
+                    defaultValue={current}
+                    className="h-11 border border-rule bg-panel px-2 text-[13px] text-ink focus:border-accent focus:outline-none"
+                  >
+                    <option value="">Any</option>
+                    {choicesOf(f).map((c) => (
+                      <option key={c.value} value={c.value}>
+                        {c.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              );
+            }
+            if (f.type === "CHECKBOX") {
+              return (
+                <div key={f.id} className="space-y-1">
+                  <label className="block text-caption text-ink-muted" htmlFor={id}>
+                    {f.label}
+                  </label>
+                  <select
+                    id={id}
+                    name={filterParam(f)}
+                    defaultValue={current}
+                    className="h-11 border border-rule bg-panel px-2 text-[13px] text-ink focus:border-accent focus:outline-none"
+                  >
+                    <option value="">Any</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                  </select>
+                </div>
+              );
+            }
+            return (
+              <div key={f.id} className="space-y-1">
+                <label className="block text-caption text-ink-muted" htmlFor={id}>
+                  {f.label}
+                </label>
+                <input
+                  id={id}
+                  name={filterParam(f)}
+                  defaultValue={current}
+                  placeholder="Contains…"
+                  className="h-11 w-40 border border-rule bg-panel px-2 text-[13px] text-ink focus:border-accent focus:outline-none"
+                />
+              </div>
+            );
+          })}
+          <button
+            type="submit"
+            className="h-11 border border-rule px-3 text-ui text-ink transition-colors hover:bg-panel-alt"
+          >
+            Apply
+          </button>
+          {filters.length > 0 && (
+            <Link
+              href={`/events/${eventId}/registrants`}
+              className="flex h-11 items-center text-ui text-ink-muted hover:text-ink"
+            >
+              Clear ({filters.length})
+            </Link>
+          )}
+        </form>
+      )}
 
       <div className="overflow-x-auto border border-rule bg-panel">
         <table className="w-full border-collapse text-left">
           <thead>
             <tr className="h-head border-b border-rule bg-panel-alt">
-              {["Name", "Email", "Tier", "Amount", "Paid", "Registered", "Budget line"].map(
-                (label, i) => (
-                  <th
-                    key={label}
-                    scope="col"
-                    className={`px-4 text-micro font-medium uppercase text-ink-muted ${
-                      i === 3 ? "text-right" : "text-left"
-                    }`}
-                  >
-                    {label}
-                  </th>
-                ),
-              )}
+              {["Name", "Email", "Tier", "Amount", "Paid", "Registered"].map((label, i) => (
+                <th
+                  key={label}
+                  scope="col"
+                  className={`px-4 text-micro font-medium uppercase text-ink-muted ${
+                    i === 3 ? "text-right" : "text-left"
+                  }`}
+                >
+                  {label}
+                </th>
+              ))}
+              {customFields.map((f) => (
+                <th
+                  key={f.id}
+                  scope="col"
+                  className="px-4 text-micro font-medium uppercase text-ink-muted"
+                >
+                  {f.label}
+                </th>
+              ))}
+              <th scope="col" className="px-4 text-micro font-medium uppercase text-ink-muted">
+                Budget line
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-rule-soft">
             {sorted.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-10 text-[13px] text-ink-muted">
-                  Nobody has registered yet. Share the link above to start taking sign-ups.
+                <td
+                  colSpan={7 + customFields.length}
+                  className="px-4 py-10 text-[13px] text-ink-muted"
+                >
+                  {filters.length > 0
+                    ? "No registrations match these filters."
+                    : "Nobody has registered yet. Share the link above to start taking sign-ups."}
                 </td>
               </tr>
             ) : (
@@ -213,6 +340,11 @@ export default async function RegistrationPage({ params }: { params: { eventId: 
                         month: "short",
                       })}
                     </td>
+                    {customFields.map((f) => (
+                      <td key={f.id} className="px-4 py-4 text-[13px] text-ink-muted">
+                        {displayAnswer(f, answersOf(registrant)[f.key])}
+                      </td>
+                    ))}
                     <td className="px-4 py-4">
                       <form action={update} className="flex flex-wrap items-center gap-2">
                         <label className="sr-only" htmlFor={`status-${registrant.id}`}>
