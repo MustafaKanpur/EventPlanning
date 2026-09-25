@@ -36,6 +36,7 @@ const BUILT_IN_TABS = [
   { key: "budget", label: "Budget" },
   { key: "registrants", label: "Registration" },
   { key: "team", label: "People" },
+  { key: "volunteers", label: "Volunteers" },
 ] as const;
 
 export type ScreenTab = { id: string; name: string; icon: string | null };

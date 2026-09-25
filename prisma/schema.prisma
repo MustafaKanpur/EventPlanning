@@ -156,10 +156,9 @@ model TeamMember {
   eventMemberships  EventMember[]
   screenDefinitions ScreenDefinition[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  templates         Template[]
-
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  templates Template[]
 }
 
 model Event {
@@ -187,6 +186,8 @@ model Event {
   budgetLines   BudgetLine[]
   registrants   Registrant[]
   screens       ScreenDefinition[]
+  shifts        Shift[]
+  hoursEntries  HoursEntry[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -218,7 +219,7 @@ model ScheduleItem {
   location String?
   notes    String?
 
-  event     Event      @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -260,8 +261,6 @@ model BudgetLineItem {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
-
-
 
 model Registrant {
   id            String        @id @default(cuid())
@@ -317,7 +316,6 @@ model Vendor {
 // sitting in a storage unit. Hence both `location` and an optional `url`: not every
 // resource is a link.
 
-
 // ───────────────────────────  User-built screen library  ───────────────────────────
 // A screen is built once as a ScreenDefinition (the blueprint: field set + view config)
 
@@ -325,16 +323,16 @@ model Vendor {
 /// The separate reusable "library" concept is gone: copying a screen between events
 /// copies the definition, which is what templates are for.
 model ScreenDefinition {
-  id         String  @id @default(cuid())
+  id         String    @id @default(cuid())
   eventId    String?
-  event      Event?  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  event      Event?    @relation(fields: [eventId], references: [id], onDelete: Cascade)
   templateId String?
   template   Template? @relation(fields: [templateId], references: [id], onDelete: Cascade)
 
   name     String
   icon     String?
   viewType ViewType
-  position Int     @default(0)
+  position Int      @default(0)
 
   /// BOARD only: which SELECT field's options become the columns. Null falls back to
   /// the first SELECT field. Date-driven views (TIMELINE, CALENDAR) need no equivalent
@@ -402,7 +400,7 @@ model ScreenRecord {
 
   /// { [fieldKey]: value }. Relationships are NOT read from here — see RecordLink.
   values   Json
-  position Int   @default(0)
+  position Int  @default(0)
 
   links RecordLink[]
 
@@ -430,4 +428,84 @@ model RecordLink {
 
   @@unique([recordId, fieldKey, targetId])
   @@index([targetType, targetId])
+}
+
+// ─────────────────────────────────  Volunteers  ─────────────────────────────────
+// Org-wide, like TeamMember, but without a login: volunteers arrive through public forms
+// and are matched by email.
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+}
+
+model Volunteer {
+  id        String         @id @default(cuid())
+  name      String
+  email     String         @unique
+  phone     String?
+  address   String?
+  /// Only used for shift age limits.
+  birthDate DateTime?
+  gender    String?
+  status    ApprovalStatus @default(PENDING)
+  joinedAt  DateTime       @default(now())
+
+  signups      ShiftSignup[]
+  hoursEntries HoursEntry[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// A slot on an event. The eligibility rules are plain columns; null means no rule.
+model Shift {
+  id        String   @id @default(cuid())
+  eventId   String
+  title     String
+  startTime DateTime
+  endTime   DateTime
+  capacity  Int
+
+  minAge   Int?
+  gender   String?
+  /// "Minimum experience", measured as approved hours logged before signing up.
+  minHours Int?
+
+  event   Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  signups ShiftSignup[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([eventId, startTime])
+}
+
+model ShiftSignup {
+  id          String @id @default(cuid())
+  shiftId     String
+  volunteerId String
+
+  shift     Shift     @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+  volunteer Volunteer @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([shiftId, volunteerId])
+}
+
+/// Hours only count once approved. Editing an entry sends it back to PENDING.
+model HoursEntry {
+  id          String         @id @default(cuid())
+  volunteerId String
+  eventId     String
+  hours       Decimal        @db.Decimal(6, 2)
+  note        String?
+  status      ApprovalStatus @default(PENDING)
+
+  volunteer Volunteer @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+  event     Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

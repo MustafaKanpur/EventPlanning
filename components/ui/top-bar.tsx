@@ -15,6 +15,7 @@ export type NavItem = { label: string; href: string };
 export const DEFAULT_NAV: NavItem[] = [
   { label: "Events", href: "/dashboard" },
   { label: "People", href: "/team" },
+  { label: "Volunteers", href: "/volunteers" },
   { label: "Templates", href: "/templates" },
 ];
 
