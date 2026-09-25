@@ -1,4 +1,4 @@
-import type { FieldDefinition, FieldType, Prisma } from "@prisma/client";
+import type { FieldDefinition, FieldType } from "@prisma/client";
 
 import { prisma } from "./prisma";
 import type { SelectOption } from "./screen-templates";
@@ -144,8 +144,4 @@ export function matchesFilters(answers: Answers, filters: ActiveFilter[]): boole
           .includes(value.toLowerCase());
     }
   });
-}
-
-export function emptyAnswers(): Prisma.InputJsonValue {
-  return {};
 }

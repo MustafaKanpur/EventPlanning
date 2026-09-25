@@ -140,8 +140,6 @@ export const OPTION_SWATCH_CLASSES: Record<string, string> = {
   purple: "bg-purple-500",
 };
 
-export const FIELD_TYPES: FieldType[] = FIELD_GROUPS.flatMap((g) => g.types);
-
 // Per-type input guidance, shared by the builder preview and the record forms so an
 // example and its limit can never drift apart. `maxLength` also drives the live
 // character counter; types without one have no meaningful text limit.
@@ -175,17 +173,3 @@ export const FIELD_TYPE_META: Record<FieldType, FieldTypeMeta> = {
   },
   EMAIL: { placeholder: "e.g. jordan@organization.org", maxLength: 200 },
 };
-
-// A LINK field stores display text and destination separately so the record renders a
-// proper hyperlink rather than a bare URL. Values written before that change were plain
-// strings, so reads coerce them rather than dropping them.
-export type LinkValue = { text: string; url: string };
-
-export function readLinkValue(value: unknown): LinkValue {
-  if (value && typeof value === "object" && "url" in value) {
-    const link = value as Partial<LinkValue>;
-    return { text: link.text ?? "", url: link.url ?? "" };
-  }
-  if (typeof value === "string") return { text: value, url: value };
-  return { text: "", url: "" };
-}

@@ -1,14 +1,16 @@
 import type { Prisma } from "@prisma/client";
 
+import { DEFAULT_SCREENS as DEFAULT_SCREEN_DATA } from "./default-screens-data.js";
+
 /**
  * The screens every new event starts with. These are ordinary composed screens — the
  * same thing a user builds — marked `isSystem` only so the UI can say "default screen".
  * A team can add fields to them, change the view type, or delete them outright.
  *
- * Kept in one place so event creation, the migration that seeded existing events, and
- * the demo seed all produce identical screens.
+ * The data lives in default-screens-data.js so the plain-Node demo seed can require it;
+ * this file only adds the types.
  */
-export const DEFAULT_SCREENS: {
+type DefaultScreen = {
   name: string;
   viewType: "TABLE" | "CHECKLIST";
   fields: {
@@ -18,63 +20,10 @@ export const DEFAULT_SCREENS: {
     required?: boolean;
     options?: Prisma.InputJsonValue;
   }[];
-}[] = [
-  {
-    name: "Tasks",
-    viewType: "CHECKLIST",
-    fields: [
-      { key: "title", label: "Title", type: "TEXT", required: true },
-      { key: "done", label: "Done", type: "CHECKBOX" },
-      { key: "due", label: "Due", type: "DATE" },
-      {
-        key: "owner",
-        label: "Owner",
-        type: "PERSON",
-        options: { targetType: "TEAM_MEMBER", allowMultiple: false },
-      },
-      {
-        key: "block",
-        label: "Block",
-        type: "LINK",
-        options: { targetType: "SCHEDULE_ITEM", allowMultiple: false },
-      },
-      {
-        key: "budget",
-        label: "Budget line",
-        type: "LINK",
-        options: { targetType: "BUDGET_LINE", allowMultiple: false },
-      },
-    ],
-  },
-  {
-    name: "Files",
-    viewType: "TABLE",
-    fields: [
-      { key: "name", label: "Name", type: "TEXT", required: true },
-      { key: "location", label: "Location", type: "TEXT" },
-      { key: "link", label: "Link", type: "URL" },
-      { key: "notes", label: "Notes", type: "LONG_TEXT" },
-      {
-        key: "owner",
-        label: "Added for",
-        type: "PERSON",
-        options: { targetType: "TEAM_MEMBER", allowMultiple: false },
-      },
-      {
-        key: "block",
-        label: "Block",
-        type: "LINK",
-        options: { targetType: "SCHEDULE_ITEM", allowMultiple: false },
-      },
-      {
-        key: "budget",
-        label: "Budget line",
-        type: "LINK",
-        options: { targetType: "BUDGET_LINE", allowMultiple: false },
-      },
-    ],
-  },
-];
+};
+
+// ponytail: cast trusts the .js data; enum typos there surface at seed time, not tsc.
+export const DEFAULT_SCREENS = DEFAULT_SCREEN_DATA as DefaultScreen[];
 
 /** Creates the default screen set for a newly made event. */
 export async function seedDefaultScreens(

@@ -37,12 +37,6 @@ export function linkTargetOf(field: FieldDefinition): LinkTarget | null {
   return options?.targetType ?? null;
 }
 
-export function fieldsLinkingTo(fields: FieldDefinition[], target: LinkTarget): FieldDefinition[] {
-  return fields.filter(
-    (f) => (f.type === "LINK" || f.type === "PERSON") && linkTargetOf(f) === target,
-  );
-}
-
 // ─────────────────────────── the one link query ───────────────────────────
 
 /**
@@ -200,15 +194,4 @@ export function countOverdue(screens: ChecklistScreen[], now: Date = new Date())
   }
   items.sort((a, b) => b.days - a.days);
   return { count, items };
-}
-
-export function checklistTotals(screens: ChecklistScreen[]) {
-  let done = 0;
-  let total = 0;
-  for (const screen of screens) {
-    const progress = checklistProgress(screen.records, screen.shape);
-    done += progress.done;
-    total += progress.total;
-  }
-  return { done, total };
 }
