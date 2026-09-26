@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { getCurrentTeamMember } from "@/lib/current-team-member";
 import { prisma } from "@/lib/prisma";
 import { seedDefaultScreens } from "@/lib/default-screens";
+import { timeValueToMinutes } from "@/lib/run-of-show";
 import { applyTemplateToEvent } from "@/lib/templates";
 
 export async function createEvent(formData: FormData) {
@@ -32,6 +33,8 @@ export async function createEvent(formData: FormData) {
         fundraisingGoal: fundraisingGoal ? fundraisingGoal : null,
         venue: venue || null,
         capacity: capacity ? Number(capacity) : null,
+        // Where the run of show opens; blank keeps the 09:00 default.
+        startMinutes: timeValueToMinutes(String(formData.get("startTime") ?? "")),
         ownerId: me.id,
       },
     });

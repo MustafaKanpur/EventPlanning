@@ -9,6 +9,7 @@ import {
   closestCenter,
   pointerWithin,
   rectIntersection,
+  useDndContext,
   useDraggable,
   useDroppable,
   useSensor,
@@ -20,11 +21,12 @@ import {
 
 import { placeScheduleItem } from "./actions";
 
-type SlotData = { startISO: string; maxMinutes?: number };
+/** Where a drop lands. "after": start at the anchor. "before": end at it (top of the day). */
+type SlotData = { anchorISO: string; position: "after" | "before" };
 
 /**
- * Wraps both columns so an unplaced block in the rail can be dropped onto a slot in the
- * timeline. Only the context lives here; the draggable and droppable leaves are separate
+ * Wraps both columns so a block (from the rail, or already on the timeline) can be
+ * dropped into any slot. Only the context lives here; the draggable and droppable leaves are separate
  * components below — co-locating `useDroppable` with unrelated state is what silently
  * broke drag registration in the screen builder, so the pattern is kept deliberately.
  */
@@ -57,10 +59,11 @@ export function RunOfShowDnd({
 
     const itemId = active.data.current?.itemId as string | undefined;
     const slot = over.data.current as SlotData | undefined;
-    if (!itemId || !slot?.startISO) return;
+    if (!itemId || !slot?.anchorISO) return;
 
+    // ponytail: no optimistic move; the block jumps once the server revalidates.
     startTransition(() => {
-      placeScheduleItem(eventId, itemId, slot.startISO, slot.maxMinutes);
+      placeScheduleItem(eventId, itemId, slot.anchorISO, slot.position);
     });
   }
 
@@ -90,44 +93,132 @@ export function GapSlot({
   startISO,
   minutes,
   resumesAt,
+  startsAt,
 }: {
   id: string;
   startISO: string;
   minutes: number;
   resumesAt: string;
+  /** Formatted on the server: the start a block dropped here gets. */
+  startsAt: string;
 }) {
-  const { setNodeRef, isOver } = useDroppable({ id, data: { startISO, maxMinutes: minutes } });
+  const data: SlotData = { anchorISO: startISO, position: "after" };
+  const { setNodeRef, isOver } = useDroppable({ id, data });
 
   return (
     <div
       ref={setNodeRef}
       className={`flex items-center gap-4 border-b border-rule-soft px-4 py-3 ${
-        isOver ? "bg-warn/20" : "bg-warn/[0.09]"
+        isOver ? "bg-accent text-panel" : "bg-warn/[0.09] text-ink"
       }`}
     >
-      <span className="w-[76px] shrink-0 font-mono text-meta tabular-nums text-warn">
+      <span
+        className={`w-[76px] shrink-0 font-mono text-meta tabular-nums ${isOver ? "text-panel" : "text-warn"}`}
+      >
         {minutes}m
       </span>
-      <p className="text-[13px] text-ink">
-        Nothing scheduled — programme resumes at{" "}
-        <span className="font-mono tabular-nums">{resumesAt}</span>
+      <p className="text-[13px]">
+        {isOver ? (
+          <>Drop to start at <span className="font-mono tabular-nums">{startsAt}</span></>
+        ) : (
+          <>
+            Nothing scheduled — programme resumes at{" "}
+            <span className="font-mono tabular-nums">{resumesAt}</span>
+          </>
+        )}
       </p>
     </div>
   );
 }
 
-/** Tail slot so a block can be appended after the last one. */
-export function EndSlot({ startISO, label }: { startISO: string; label: string }) {
-  const { setNodeRef, isOver } = useDroppable({ id: "slot-end", data: { startISO } });
+/**
+ * A slot between two rows. A hairline until something is being dragged, then a visible
+ * target, and a solid accent bar with the resulting time under the pointer.
+ */
+export function DropZone({
+  id,
+  anchorISO,
+  position = "after",
+  label,
+}: {
+  id: string;
+  anchorISO: string;
+  position?: "after" | "before";
+  /** Formatted on the server, e.g. "Starts 19:30". */
+  label: string;
+}) {
+  const { active } = useDndContext();
+  const data: SlotData = { anchorISO, position };
+  const { setNodeRef, isOver } = useDroppable({ id, data });
 
   return (
     <div
       ref={setNodeRef}
-      className={`px-4 py-3 text-[13px] ${
-        isOver ? "bg-accent/10 text-ink" : "text-ink-muted"
+      className={`flex items-center px-4 transition-[height] print:hidden ${
+        !active ? "h-1" : isOver ? "h-9 bg-accent" : "h-5"
       }`}
     >
-      {label}
+      {isOver ? (
+        <span className="font-mono text-meta tabular-nums text-panel">{label}</span>
+      ) : active ? (
+        <span className="h-px w-full border-t border-dashed border-rule" aria-hidden="true" />
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * A placed block that can be picked up again. Only the grip starts a drag, so the edit
+ * forms, task checkboxes and links inside the row keep working.
+ */
+export function DraggableRow({
+  id,
+  title,
+  className = "",
+  children,
+}: {
+  id: string;
+  title: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, isDragging } = useDraggable({
+    id: `placed-${id}`,
+    data: { itemId: id, title },
+  });
+
+  return (
+    <div ref={setNodeRef} className={`relative ${isDragging ? "opacity-40" : ""} ${className}`}>
+      <button
+        ref={setActivatorNodeRef}
+        {...listeners}
+        {...attributes}
+        type="button"
+        aria-label={`Move ${title}`}
+        className="absolute left-0 top-0 flex h-11 w-5 cursor-grab items-center justify-center text-ink-muted hover:text-ink print:hidden"
+      >
+        <svg width="8" height="14" viewBox="0 0 8 14" fill="currentColor" aria-hidden="true">
+          <circle cx="2" cy="2" r="1.2" /><circle cx="6" cy="2" r="1.2" />
+          <circle cx="2" cy="7" r="1.2" /><circle cx="6" cy="7" r="1.2" />
+          <circle cx="2" cy="12" r="1.2" /><circle cx="6" cy="12" r="1.2" />
+        </svg>
+      </button>
+      {children}
+    </div>
+  );
+}
+
+/** Tail slot so a block can be appended after the last one. */
+export function EndSlot({ startISO, label, overLabel }: { startISO: string; label: string; overLabel: string }) {
+  const data: SlotData = { anchorISO: startISO, position: "after" };
+  const { setNodeRef, isOver } = useDroppable({ id: "slot-end", data });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`px-4 py-3 text-[13px] ${isOver ? "bg-accent text-panel" : "text-ink-muted"}`}
+    >
+      {isOver ? overLabel : label}
     </div>
   );
 }
@@ -139,6 +230,7 @@ export function UnplacedBlock({
   taskCount,
   aiDrafted = false,
   aiHint = null,
+  editor,
 }: {
   id: string;
   title: string;
@@ -148,6 +240,8 @@ export function UnplacedBlock({
   aiDrafted?: boolean;
   /** "Suggested 20:15 · 45m", formatted on the server so it can't differ on hydration. */
   aiHint?: string | null;
+  /** Server-rendered edit panel, shown under the draggable card. */
+  editor?: React.ReactNode;
 }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `unplaced-${id}`,
@@ -177,6 +271,7 @@ export function UnplacedBlock({
             .join(" · ") || "No time set"}
         </span>
       </button>
+      {editor}
     </li>
   );
 }

@@ -44,6 +44,12 @@ export default async function NewEventPage({
             <input id="eventDate" name="eventDate" type="date" required className={field} />
           </div>
           <div>
+            <label className={label} htmlFor="startTime">
+              Start time <span className="text-ink-muted">(optional)</span>
+            </label>
+            <input id="startTime" name="startTime" type="time" className={field} />
+          </div>
+          <div>
             <label className={label} htmlFor="venue">
               Venue <span className="text-ink-muted">(optional)</span>
             </label>

@@ -7,6 +7,7 @@ import { draftRunOfShow } from "@/lib/ai/run-of-show";
 import { getCurrentTeamMember } from "@/lib/current-team-member";
 import { formatTime } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
+import { durationMinutes, onEventDay, timeValueToMinutes } from "@/lib/run-of-show";
 
 async function requireMember() {
   const me = await getCurrentTeamMember();
@@ -81,49 +82,105 @@ export async function updateScheduleItem(
   revalidateEvent(eventId);
 }
 
+/** Length a block carries onto the timeline: its current slot, else its saved duration. */
+function lengthOf(item: { startTime: Date | null; endTime: Date | null; durationMinutes: number | null }) {
+  if (item.startTime && item.endTime) return durationMinutes(item.startTime, item.endTime);
+  return item.durationMinutes ?? 30;
+}
+
 /**
- * Drops an unplaced block into a slot. Duration is capped to the gap it was dropped
- * into so placing a block can never create an overlap out of nowhere.
+ * Drops a block (from the tray, or moved within the timeline) next to `anchorISO`.
+ * "after": it starts at the anchor, the end of the block above. "before": it ends at the
+ * anchor, the start of the first block. The block always keeps its own length, and
+ * nothing else moves: a clash is flagged on the timeline, never prevented.
  */
 export async function placeScheduleItem(
   eventId: string,
   scheduleItemId: string,
-  startISO: string,
-  maxMinutes?: number,
+  anchorISO: string,
+  position: "after" | "before" = "after",
 ) {
   await requireMember();
 
-  const start = new Date(startISO);
-  if (Number.isNaN(start.getTime())) throw new Error("Invalid slot.");
+  const anchor = new Date(anchorISO);
+  if (Number.isNaN(anchor.getTime())) throw new Error("Invalid slot.");
 
   const item = await prisma.scheduleItem.findFirst({
     where: { id: scheduleItemId, eventId },
-    select: { durationMinutes: true },
+    select: { startTime: true, endTime: true, durationMinutes: true },
   });
   if (!item) throw new Error("Block not found.");
 
-  // A drafted block keeps its proposed length; others default to 30 minutes as before.
-  const wanted = item.durationMinutes ?? 30;
-  const minutes = Math.max(5, Math.min(wanted, maxMinutes ?? wanted));
+  const minutes = Math.max(5, lengthOf(item));
+  const start = position === "before" ? new Date(anchor.getTime() - minutes * 60_000) : anchor;
   const end = new Date(start.getTime() + minutes * 60_000);
 
   await prisma.scheduleItem.update({
     where: { id: scheduleItemId },
-    data: { startTime: start, endTime: end, aiDrafted: false },
+    data: { startTime: start, endTime: end, durationMinutes: minutes, aiDrafted: false },
   });
 
   revalidateEvent(eventId);
 }
 
-/** Sends a block back to "Not yet placed" without deleting anything. */
+/** Sends a block back to "Not yet placed" without deleting anything, keeping its length. */
 export async function unplaceScheduleItem(eventId: string, scheduleItemId: string) {
   await requireMember();
 
+  const item = await prisma.scheduleItem.findFirst({
+    where: { id: scheduleItemId, eventId },
+    select: { startTime: true, endTime: true, durationMinutes: true },
+  });
+  if (!item) throw new Error("Block not found.");
+
   await prisma.scheduleItem.update({
     where: { id: scheduleItemId },
-    data: { startTime: null, endTime: null },
+    data: { startTime: null, endTime: null, durationMinutes: lengthOf(item) },
   });
 
+  revalidateEvent(eventId);
+}
+
+/** Edits a block still in the tray (an AI draft or a hand-added one) before it's placed. */
+export async function updateUnplacedItem(eventId: string, scheduleItemId: string, formData: FormData) {
+  await requireMember();
+
+  const title = String(formData.get("title") ?? "").trim();
+  const location = String(formData.get("location") ?? "").trim();
+  const notes = String(formData.get("notes") ?? "").trim();
+  const duration = Number(String(formData.get("durationMinutes") ?? "").trim());
+  const suggestedMinutes = timeValueToMinutes(String(formData.get("suggestedStart") ?? ""));
+
+  if (!title) throw new Error("Title is required.");
+  if (!Number.isInteger(duration) || duration < 5 || duration > 24 * 60) {
+    throw new Error("Duration must be between 5 minutes and 24 hours.");
+  }
+
+  const item = await prisma.scheduleItem.findFirst({
+    where: { id: scheduleItemId, eventId, startTime: null },
+    select: { event: { select: { eventDate: true } } },
+  });
+  if (!item) throw new Error("Block not found.");
+
+  await prisma.scheduleItem.update({
+    where: { id: scheduleItemId },
+    data: {
+      title,
+      location: location || null,
+      notes: notes || null,
+      durationMinutes: duration,
+      suggestedStart: suggestedMinutes === null ? null : onEventDay(item.event.eventDate, suggestedMinutes),
+    },
+  });
+
+  revalidateEvent(eventId);
+}
+
+/** When the programme starts. Only sets where an empty run of show opens. */
+export async function setEventStartTime(eventId: string, formData: FormData) {
+  await requireMember();
+  const startMinutes = timeValueToMinutes(String(formData.get("startTime") ?? ""));
+  await prisma.event.update({ where: { id: eventId }, data: { startMinutes } });
   revalidateEvent(eventId);
 }
 
@@ -209,11 +266,8 @@ export async function draftScheduleItems(eventId: string, rawPrompt: string): Pr
   }
 
   const suggestedStart = (hhmm: string | null) => {
-    if (!hhmm) return null;
-    const [h, m] = hhmm.split(":").map(Number);
-    const at = new Date(day);
-    at.setHours(h, m, 0, 0);
-    return at;
+    const minutes = hhmm ? timeValueToMinutes(hhmm) : null;
+    return minutes === null ? null : onEventDay(day, minutes);
   };
 
   // eventId comes from the access-checked event, never from the model or the client.

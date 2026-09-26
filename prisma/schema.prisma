@@ -174,6 +174,11 @@ model Event {
   venue    String?
   capacity Int?
 
+  /// When the programme starts, as minutes after midnight on eventDate. Kept apart from
+  /// eventDate (a UTC-midnight date) so it can't shift days across time zones. Null means
+  /// the run of show opens at 09:00.
+  startMinutes Int?
+
   // Ordered list of tab keys ("schedule", "budget", … , "screen:<eventScreenId>").
   // Unknown/stale keys are ignored on read and missing tabs fall back to default order,
   // so this never needs repairing when tabs are added or removed.

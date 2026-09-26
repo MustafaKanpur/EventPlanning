@@ -7,7 +7,7 @@
     "build": "prisma generate && prisma migrate deploy && next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "node --test --experimental-strip-types --no-warnings --conditions=react-server lib/ai/*.test.ts",
+    "test": "node --test --experimental-strip-types --no-warnings --conditions=react-server lib/*.test.ts lib/ai/*.test.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {

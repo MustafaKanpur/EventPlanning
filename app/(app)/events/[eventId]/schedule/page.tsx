@@ -3,12 +3,16 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { formatDuration, formatMoney, formatTime } from "@/lib/format";
 import {
+  DEFAULT_START_MINUTES,
   buildTimeline,
   daysLate,
   durationMinutes,
   findBlockers,
+  findOverlaps,
   isOverdue,
   mergeProjections,
+  minutesToTimeValue,
+  onEventDay,
   scheduleTotals,
   splitBlocks,
   type PlacedBlock,
@@ -20,8 +24,10 @@ import { ReferencedBy } from "@/components/screens/referenced-by";
 import {
   createScheduleItem,
   deleteScheduleItem,
+  setEventStartTime,
   unplaceScheduleItem,
   updateScheduleItem,
+  updateUnplacedItem,
 } from "./actions";
 import { addChecklistItemForBlock, toggleRecordCheckbox } from "../screens/actions";
 import {
@@ -35,7 +41,7 @@ import {
   valuesOf,
 } from "@/lib/records";
 import { DraftWithAi } from "./draft-with-ai";
-import { EndSlot, GapSlot, RunOfShowDnd, UnplacedBlock } from "./run-of-show-dnd";
+import { DraggableRow, DropZone, EndSlot, GapSlot, RunOfShowDnd, UnplacedBlock } from "./run-of-show-dnd";
 import { PrintTrigger } from "./print-trigger";
 
 const field =
@@ -163,9 +169,22 @@ export default async function RunOfShowPage({
     return parts.length ? parts.join(" · ") : null;
   };
 
-  const lastEnd = placed.length ? placed[placed.length - 1].endTime : null;
-  const fallbackStart = new Date(event?.eventDate ?? new Date());
-  if (!lastEnd) fallbackStart.setHours(9, 0, 0, 0);
+  // The furthest end, not the last block's: a long block can outlast the ones after it.
+  const lastEnd = placed.reduce<Date | null>(
+    (latest, b) => (!latest || b.endTime > latest ? b.endTime : latest),
+    null,
+  );
+  // An empty day opens at the event's start time, not a fixed 09:00.
+  const dayStart = onEventDay(event?.eventDate ?? new Date(), event?.startMinutes ?? DEFAULT_START_MINUTES);
+  const setStart = setEventStartTime.bind(null, eventId);
+
+  // Clashes are flagged on both blocks involved, never prevented.
+  const overlapsWith = new Map<string, string[]>();
+  for (const { block, earlier } of findOverlaps(placed)) {
+    overlapsWith.set(block.id, [...(overlapsWith.get(block.id) ?? []), earlier.title]);
+    overlapsWith.set(earlier.id, [...(overlapsWith.get(earlier.id) ?? []), block.title]);
+  }
+  const lastBlockIndex = timeline.map((row) => row.kind).lastIndexOf("block");
 
   return (
     <RunOfShowDnd eventId={eventId}>
@@ -182,6 +201,21 @@ export default async function RunOfShowPage({
                 {formatDuration(scheduledMinutes)} scheduled
                 {unaccountedMinutes > 0 && ` · ${formatDuration(unaccountedMinutes)} unaccounted`}
               </p>
+              <form action={setStart} className="mt-2 flex items-center gap-2 print:hidden">
+                <label htmlFor="day-start" className="text-caption text-ink-muted">
+                  Day starts
+                </label>
+                <input
+                  id="day-start"
+                  name="startTime"
+                  type="time"
+                  defaultValue={minutesToTimeValue(event?.startMinutes ?? DEFAULT_START_MINUTES)}
+                  className="h-8 border border-rule bg-panel px-2 font-mono text-meta tabular-nums text-ink focus:border-accent focus:outline-none"
+                />
+                <button type="submit" className="text-meta text-ink-muted hover:text-ink">
+                  Set
+                </button>
+              </form>
             </div>
             <div className="flex items-center gap-5 print:hidden">
               <Link href={`/events/${eventId}/tasks`} className={textButton}>
@@ -247,35 +281,65 @@ export default async function RunOfShowPage({
                 No blocks yet. Add the first one to start the run of show.
               </p>
             ) : (
-              timeline.map((row) =>
-                row.kind === "projection" ? (
-                  <ProjectionRow key={`proj-${row.recordId}`} eventId={eventId} row={row} />
-                ) : row.kind === "gap" ? (
-                  <GapSlot
-                    key={`gap-${row.start.toISOString()}`}
-                    id={`gap-${row.start.toISOString()}`}
-                    startISO={row.start.toISOString()}
-                    minutes={row.minutes}
-                    resumesAt={formatTime(row.end)}
+              <>
+                {placed.length > 0 && (
+                  <DropZone
+                    id="zone-top"
+                    anchorISO={placed[0].startTime.toISOString()}
+                    position="before"
+                    label={`Ends ${formatTime(placed[0].startTime)}`}
                   />
-                ) : (
-                  <BlockRow
-                    key={row.block.id}
-                    eventId={eventId}
-                    block={row.block}
-                    teamMembers={teamMembers}
-                  />
-                ),
-              )
+                )}
+                {timeline.map((row, i) => {
+                  if (row.kind === "projection") {
+                    return <ProjectionRow key={`proj-${row.recordId}`} eventId={eventId} row={row} />;
+                  }
+                  if (row.kind === "gap") {
+                    return (
+                      <GapSlot
+                        key={`gap-${row.start.toISOString()}`}
+                        id={`gap-${row.start.toISOString()}`}
+                        startISO={row.start.toISOString()}
+                        minutes={row.minutes}
+                        resumesAt={formatTime(row.end)}
+                        startsAt={formatTime(row.start)}
+                      />
+                    );
+                  }
+                  const end = row.block.endTime;
+                  // A gap below is already a drop target, and the end slot covers the last block.
+                  const zoneBelow = i !== lastBlockIndex && timeline[i + 1]?.kind !== "gap";
+                  return (
+                    <div key={row.block.id}>
+                      <DraggableRow id={row.block.id} title={row.block.title}>
+                        <BlockRow
+                          eventId={eventId}
+                          block={row.block}
+                          teamMembers={teamMembers}
+                          overlaps={overlapsWith.get(row.block.id)}
+                        />
+                      </DraggableRow>
+                      {zoneBelow && (
+                        <DropZone
+                          id={`zone-${row.block.id}`}
+                          anchorISO={end.toISOString()}
+                          label={`Starts ${formatTime(end)}`}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </>
             )}
             <div className="border-t border-rule print:hidden">
               <EndSlot
-                startISO={(lastEnd ?? fallbackStart).toISOString()}
+                startISO={(lastEnd ?? dayStart).toISOString()}
                 label={
                   lastEnd
                     ? `Drop a block here to run after ${formatTime(lastEnd)}`
-                    : "Drop a block here to open the day"
+                    : `Drop a block here to open the day at ${formatTime(dayStart)}`
                 }
+                overLabel={`Drop to start at ${formatTime(lastEnd ?? dayStart)}`}
               />
             </div>
           </div>
@@ -338,6 +402,14 @@ export default async function RunOfShowPage({
                     taskCount={block.tasks.length}
                     aiDrafted={itemById.get(block.id)?.aiDrafted}
                     aiHint={aiHint(block.id)}
+                    editor={
+                      <UnplacedEditor
+                        eventId={eventId}
+                        block={block}
+                        durationMinutes={itemById.get(block.id)?.durationMinutes ?? null}
+                        suggestedStart={itemById.get(block.id)?.suggestedStart ?? null}
+                      />
+                    }
                   />
                 ))}
               </ul>
@@ -387,10 +459,13 @@ function BlockRow({
   eventId,
   block,
   teamMembers,
+  overlaps,
 }: {
   eventId: string;
   block: PlacedBlock;
   teamMembers: { id: string; name: string }[];
+  /** Titles of blocks this one clashes with. */
+  overlaps?: string[];
 }) {
   const addTask = addChecklistItemForBlock.bind(null, eventId, block.id);
   const editBlock = updateScheduleItem.bind(null, eventId, block.id);
@@ -399,9 +474,15 @@ function BlockRow({
   const minutes = durationMinutes(block.startTime, block.endTime);
 
   return (
-    <div className="flex border-b border-rule-soft last:border-b-0">
-      <div className="w-[92px] shrink-0 border-r border-rule-soft px-4 py-4">
-        <p className="font-mono text-[14px] leading-none tabular-nums text-ink">
+    <div
+      className={`flex border-b border-l-2 border-b-rule-soft ${
+        overlaps ? "border-l-danger" : "border-l-transparent"
+      }`}
+    >
+      <div className="w-[92px] shrink-0 border-r border-rule-soft py-4 pl-6 pr-3">
+        <p
+          className={`font-mono text-[14px] leading-none tabular-nums ${overlaps ? "text-danger" : "text-ink"}`}
+        >
           {formatTime(block.startTime)}
         </p>
         <p className="mt-1 font-mono text-meta tabular-nums text-ink-muted">
@@ -471,6 +552,12 @@ function BlockRow({
             </div>
           </details>
         </div>
+
+        {overlaps && (
+          <p className="mt-1 text-meta text-danger">
+            Overlaps {overlaps.join(", ")} · {formatTime(block.startTime)}–{formatTime(block.endTime)}
+          </p>
+        )}
 
         {block.notes && (
           <p className="mt-1 whitespace-pre-line text-caption text-ink-muted">{block.notes}</p>
@@ -603,5 +690,96 @@ function BlockRow({
         )}
       </div>
     </div>
+  );
+}
+
+/** Edit panel for a block still in the tray, so an AI draft can be fixed before placing. */
+function UnplacedEditor({
+  eventId,
+  block,
+  durationMinutes,
+  suggestedStart,
+}: {
+  eventId: string;
+  block: RunBlock;
+  durationMinutes: number | null;
+  suggestedStart: Date | null;
+}) {
+  const save = updateUnplacedItem.bind(null, eventId, block.id);
+  const remove = deleteScheduleItem.bind(null, eventId, block.id);
+
+  return (
+    <details className="border border-t-0 border-rule bg-panel">
+      <summary className="cursor-pointer list-none px-3 py-1.5 text-meta text-ink-muted hover:text-ink">
+        Edit
+      </summary>
+      <div className="space-y-2 border-t border-rule-soft p-3">
+        <form action={save} className="space-y-2">
+          <label className="sr-only" htmlFor={`draft-title-${block.id}`}>
+            Title
+          </label>
+          <input id={`draft-title-${block.id}`} name="title" defaultValue={block.title} required className={field} />
+          <label className="sr-only" htmlFor={`draft-location-${block.id}`}>
+            Location
+          </label>
+          <input
+            id={`draft-location-${block.id}`}
+            name="location"
+            defaultValue={block.location ?? ""}
+            placeholder="Location"
+            className={field}
+          />
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <label className="block text-caption text-ink-muted" htmlFor={`draft-duration-${block.id}`}>
+                Duration (min)
+              </label>
+              <input
+                id={`draft-duration-${block.id}`}
+                name="durationMinutes"
+                type="number"
+                min={5}
+                max={1440}
+                step={5}
+                required
+                defaultValue={durationMinutes ?? 30}
+                className={field}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="block text-caption text-ink-muted" htmlFor={`draft-start-${block.id}`}>
+                Suggested time
+              </label>
+              <input
+                id={`draft-start-${block.id}`}
+                name="suggestedStart"
+                type="time"
+                defaultValue={suggestedStart ? formatTime(suggestedStart) : ""}
+                className={field}
+              />
+            </div>
+          </div>
+          <label className="sr-only" htmlFor={`draft-notes-${block.id}`}>
+            Notes
+          </label>
+          <textarea
+            id={`draft-notes-${block.id}`}
+            name="notes"
+            rows={2}
+            defaultValue={block.notes ?? ""}
+            placeholder="Notes"
+            className={field}
+          />
+          <button type="submit" className="h-11 w-full bg-accent text-ui text-panel transition-opacity hover:opacity-90">
+            Save
+          </button>
+        </form>
+        <form action={remove} className="text-right">
+          <button type="submit" className="text-meta text-ink-muted hover:text-danger">
+            Delete
+          </button>
+        </form>
+      </div>
+    </details>
   );
 }

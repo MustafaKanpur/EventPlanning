@@ -1,4 +1,4 @@
-import { formatTime } from "./format";
+import { formatTime } from "./format.ts";
 
 /**
  * A nested task row. These are ScreenRecords from any CHECKLIST screen that links to
@@ -190,18 +190,14 @@ export function findBlockers(blocks: RunBlock[], options: { eventId: string }): 
     });
   }
 
-  // Two blocks claiming the same minutes is a scheduling error the timeline can't show
-  // on its own, since it renders them in sequence.
-  for (let i = 1; i < placed.length; i++) {
-    const prev = placed[i - 1];
-    const cur = placed[i];
-    if (cur.startTime.getTime() < prev.endTime.getTime()) {
-      blockers.push({
-        kind: "overlap",
-        label: `${cur.title} overlaps ${prev.title}`,
-        detail: `${formatTime(cur.startTime)} starts before ${formatTime(prev.endTime)}`,
-      });
-    }
+  // Two blocks claiming the same minutes is flagged, never prevented: organizers are free
+  // to drop a block anywhere and sort the clash out afterwards.
+  for (const { block, earlier } of findOverlaps(placed)) {
+    blockers.push({
+      kind: "overlap",
+      label: `${block.title} overlaps ${earlier.title}`,
+      detail: `${formatTime(block.startTime)} starts before ${formatTime(earlier.endTime)}`,
+    });
   }
 
   if (unplaced.length) {
@@ -214,3 +210,45 @@ export function findBlockers(blocks: RunBlock[], options: { eventId: string }): 
 
   return blockers;
 }
+
+/**
+ * Every pair of placed blocks whose times intersect, each reported once against the
+ * earlier-starting block. Checks all earlier blocks, not just the previous one, so a
+ * block inside a long one is still caught after a short one ends.
+ * ponytail: O(n²), fine for a day's programme; sweep with an interval tree if it grows.
+ */
+export function findOverlaps(placed: PlacedBlock[]): { block: PlacedBlock; earlier: PlacedBlock }[] {
+  const sorted = [...placed].sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+  const pairs: { block: PlacedBlock; earlier: PlacedBlock }[] = [];
+  sorted.forEach((block, i) => {
+    for (const earlier of sorted.slice(0, i)) {
+      if (block.startTime.getTime() < earlier.endTime.getTime()) pairs.push({ block, earlier });
+    }
+  });
+  return pairs;
+}
+
+/** 18:30 -> "18:30"; the value an `<input type="time">` takes. */
+export function minutesToTimeValue(minutes: number): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${pad(Math.floor(minutes / 60))}:${pad(minutes % 60)}`;
+}
+
+/** "18:30" -> 1110, or null for anything that isn't a valid 24-hour time. */
+export function timeValueToMinutes(value: string): number | null {
+  const match = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(value.trim());
+  return match ? Number(match[1]) * 60 + Number(match[2]) : null;
+}
+
+/**
+ * The event's day at a time of day. Read in server-local time, like every other
+ * datetime on the run of show.
+ */
+export function onEventDay(eventDate: Date, minutes: number): Date {
+  const at = new Date(eventDate);
+  at.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0);
+  return at;
+}
+
+/** Where an empty run of show opens: the event's start time, else 09:00. */
+export const DEFAULT_START_MINUTES = 9 * 60;
