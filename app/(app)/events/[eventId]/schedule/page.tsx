@@ -34,6 +34,7 @@ import {
   titleKeyOf,
   valuesOf,
 } from "@/lib/records";
+import { DraftWithAi } from "./draft-with-ai";
 import { EndSlot, GapSlot, RunOfShowDnd, UnplacedBlock } from "./run-of-show-dnd";
 import { PrintTrigger } from "./print-trigger";
 
@@ -149,6 +150,18 @@ export default async function RunOfShowPage({
   const { scheduledMinutes, unaccountedMinutes } = scheduleTotals(placed);
   const blockers = findBlockers(blocks, { eventId });
   const addBlock = createScheduleItem.bind(null, eventId);
+  // The AI-draft columns only matter in the tray, so they're read from the raw rows
+  // rather than widening RunBlock, which the day-of view also builds.
+  const itemById = new Map(items.map((item) => [item.id, item]));
+  const aiHint = (id: string) => {
+    const item = itemById.get(id);
+    if (!item) return null;
+    const parts = [
+      item.suggestedStart ? `Suggested ${formatTime(item.suggestedStart)}` : null,
+      item.durationMinutes ? formatDuration(item.durationMinutes) : null,
+    ].filter(Boolean);
+    return parts.length ? parts.join(" · ") : null;
+  };
 
   const lastEnd = placed.length ? placed[placed.length - 1].endTime : null;
   const fallbackStart = new Date(event?.eventDate ?? new Date());
@@ -306,6 +319,8 @@ export default async function RunOfShowPage({
             </div>
           </section>
 
+          <DraftWithAi eventId={eventId} />
+
           <section>
             <h2 className="mb-2 text-micro uppercase text-ink-muted">Not yet placed</h2>
             {unplaced.length === 0 ? (
@@ -321,6 +336,8 @@ export default async function RunOfShowPage({
                     title={block.title}
                     location={block.location}
                     taskCount={block.tasks.length}
+                    aiDrafted={itemById.get(block.id)?.aiDrafted}
+                    aiHint={aiHint(block.id)}
                   />
                 ))}
               </ul>

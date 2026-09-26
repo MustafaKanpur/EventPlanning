@@ -16,16 +16,17 @@ datasource db {
 // 1:1 to a User by email on first sign-in.
 
 model User {
-  id            String      @id @default(cuid())
+  id            String        @id @default(cuid())
   name          String?
-  email         String      @unique
+  email         String        @unique
   emailVerified DateTime?
   image         String?
   accounts      Account[]
   sessions      Session[]
   teamMember    TeamMember?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  agentActions  AgentAction[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 }
 
 model Account {
@@ -188,6 +189,7 @@ model Event {
   screens       ScreenDefinition[]
   shifts        Shift[]
   hoursEntries  HoursEntry[]
+  agentActions  AgentAction[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -218,6 +220,13 @@ model ScheduleItem {
 
   location String?
   notes    String?
+
+  /// Proposed by the AI drafter and not yet placed. Cleared when dropped on the timeline.
+  aiDrafted       Boolean   @default(false)
+  /// Length to use when the block is placed. Null falls back to 30 minutes.
+  durationMinutes Int?
+  /// Where the drafter thought it should go. A hint for the organizer, never a placement.
+  suggestedStart  DateTime?
 
   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
@@ -508,4 +517,26 @@ model HoursEntry {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// ───────────────────────────────  AI audit log  ───────────────────────────────
+
+/// One row per AI request: the audit trail and the rate-limit counter. eventId is
+/// SetNull so deleting an event can't erase history or reset anyone's daily limit.
+model AgentAction {
+  id           String   @id @default(cuid())
+  userId       String
+  eventId      String?
+  feature      String
+  prompt       String   @db.Text
+  inputTokens  Int?
+  outputTokens Int?
+  success      Boolean  @default(false)
+  error        String?
+  createdAt    DateTime @default(now())
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event Event? @relation(fields: [eventId], references: [id], onDelete: SetNull)
+
+  @@index([userId, feature, createdAt])
 }

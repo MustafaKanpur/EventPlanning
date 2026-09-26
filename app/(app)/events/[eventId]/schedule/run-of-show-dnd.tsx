@@ -137,11 +137,17 @@ export function UnplacedBlock({
   title,
   location,
   taskCount,
+  aiDrafted = false,
+  aiHint = null,
 }: {
   id: string;
   title: string;
   location: string | null;
   taskCount: number;
+  /** Proposed by "Draft with AI" and not placed yet. */
+  aiDrafted?: boolean;
+  /** "Suggested 20:15 · 45m", formatted on the server so it can't differ on hydration. */
+  aiHint?: string | null;
 }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `unplaced-${id}`,
@@ -159,9 +165,14 @@ export function UnplacedBlock({
           isDragging ? "opacity-40" : ""
         }`}
       >
+        {aiDrafted && <span className="block text-micro uppercase text-accent">AI draft</span>}
         <span className="block text-[13px] text-ink">{title}</span>
         <span className="mt-0.5 block text-meta text-ink-muted">
-          {[location, taskCount ? `${taskCount} task${taskCount === 1 ? "" : "s"}` : null]
+          {[
+            aiHint,
+            location,
+            taskCount ? `${taskCount} task${taskCount === 1 ? "" : "s"}` : null,
+          ]
             .filter(Boolean)
             .join(" · ") || "No time set"}
         </span>
