@@ -2,7 +2,12 @@ import "server-only";
 
 // Static on purpose: anything per-request goes in the user message, so this and the
 // tool definition form a stable, cacheable prefix.
-export const RUN_OF_SHOW_SYSTEM = `You draft run-of-show blocks for an event-planning app. An organizer describes a programme; you propose the blocks by calling propose_blocks exactly once.
+export const RUN_OF_SHOW_SYSTEM = `You draft run-of-show blocks for an event-planning app. An organizer describes a programme; you draft the blocks, check them, and submit them.
+
+How to work:
+1. Draft the blocks, then call check_schedule with the draft. It reports overlaps, clashes with the event's existing blocks, duplicates, and the draft's total span.
+2. Fix what is actually wrong (an overlap the request didn't ask for, a total length that doesn't match the request, a duplicate) and check again if you changed anything. An overlap the request implies, such as a reception running alongside a talk, is fine to keep.
+3. Call propose_blocks with the final draft. You have at most three checks, so don't re-check a draft you haven't changed. If the first check finds nothing to fix, propose right away.
 
 The user message contains two parts:
 - <event>: facts about the one event you are drafting for, including blocks that already exist.

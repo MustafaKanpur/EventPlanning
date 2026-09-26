@@ -4,38 +4,51 @@ import type Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 
 export const PROPOSE_BLOCKS = "propose_blocks";
+export const CHECK_SCHEDULE = "check_schedule";
 
 /**
  * Hand-written to mirror ProposedBlocksSchema below. `strict` keeps the model to this
  * shape; Zod still checks the limits this schema doesn't express (lengths, ranges, the
- * HH:MM pattern) before anything reaches the database.
+ * HH:MM pattern) before anything reaches the database. Both tools take the same draft.
  */
-export const PROPOSE_BLOCKS_TOOL: Anthropic.Tool = {
-  name: PROPOSE_BLOCKS,
-  description: "Propose run-of-show blocks for the event. They are parked for the organizer to place.",
-  strict: true,
-  input_schema: {
-    type: "object",
-    properties: {
-      blocks: {
-        type: "array",
-        items: {
-          type: "object",
-          properties: {
-            title: { type: "string" },
-            durationMinutes: { type: "integer" },
-            suggestedStart: { type: ["string", "null"], description: '24-hour "HH:MM", or null' },
-            location: { type: ["string", "null"] },
-            notes: { type: ["string", "null"] },
-          },
-          required: ["title", "durationMinutes", "suggestedStart", "location", "notes"],
-          additionalProperties: false,
+const BLOCKS_INPUT: Anthropic.Tool["input_schema"] = {
+  type: "object",
+  properties: {
+    blocks: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          title: { type: "string" },
+          durationMinutes: { type: "integer" },
+          suggestedStart: { type: ["string", "null"], description: '24-hour "HH:MM", or null' },
+          location: { type: ["string", "null"] },
+          notes: { type: ["string", "null"] },
         },
+        required: ["title", "durationMinutes", "suggestedStart", "location", "notes"],
+        additionalProperties: false,
       },
     },
-    required: ["blocks"],
-    additionalProperties: false,
   },
+  required: ["blocks"],
+  additionalProperties: false,
+};
+
+/** The agent's one lookup: checks a draft and returns issues. Changes nothing. */
+export const CHECK_SCHEDULE_TOOL: Anthropic.Tool = {
+  name: CHECK_SCHEDULE,
+  description:
+    "Check a draft before proposing it. Returns overlaps between timed blocks, clashes with the event's existing blocks, duplicates, and the draft's total span. Changes nothing.",
+  strict: true,
+  input_schema: BLOCKS_INPUT,
+};
+
+/** The final answer. Calling it ends the draft; the blocks are parked for the organizer to place. */
+export const PROPOSE_BLOCKS_TOOL: Anthropic.Tool = {
+  name: PROPOSE_BLOCKS,
+  description: "Submit the final run-of-show blocks for the event. They are parked for the organizer to place.",
+  strict: true,
+  input_schema: BLOCKS_INPUT,
 };
 
 const optionalText = (max: number) =>
