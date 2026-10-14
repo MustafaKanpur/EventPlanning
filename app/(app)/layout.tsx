@@ -11,6 +11,7 @@ export default async function AppLayout({
 }) {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/signin");
+  if (!session.user.emailVerified) redirect("/verify-email");
 
   return (
     <div className="min-h-screen bg-ground">

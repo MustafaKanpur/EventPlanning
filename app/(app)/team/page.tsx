@@ -1,8 +1,12 @@
+import { getCurrentTeamMember } from "@/lib/current-team-member";
 import { prisma } from "@/lib/prisma";
 import { createTeamMember, updateTeamMember } from "./actions";
 import { TEAM_ROLE_STYLES } from "@/lib/status-styles";
 
 export default async function TeamPage() {
+  // Everyone can see the roster; only org ADMINs add people or change roles and abilities.
+  const me = await getCurrentTeamMember();
+  const isAdmin = me?.role === "ADMIN";
   const teamMembers = await prisma.teamMember.findMany({
     orderBy: { name: "asc" },
     include: { abilities: { select: { ability: true } } },
@@ -17,6 +21,7 @@ export default async function TeamPage() {
         </p>
       </div>
 
+      {isAdmin && (
       <details className="group rounded-[3px] border border-rule bg-panel ">
         <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium text-ink hover:bg-panel-alt">
           + Add team member
@@ -67,6 +72,7 @@ export default async function TeamPage() {
           </div>
         </form>
       </details>
+      )}
 
       {teamMembers.length === 0 ? (
         <div className="rounded-[3px] border border-rule bg-panel px-4 py-10">
@@ -91,6 +97,7 @@ export default async function TeamPage() {
                   >
                     {member.role}
                   </span>
+                  {isAdmin && (
                   <details>
                     <summary className="cursor-pointer list-none text-xs font-medium text-accent hover:text-ink">
                       Edit
@@ -148,6 +155,7 @@ export default async function TeamPage() {
                       </button>
                     </form>
                   </details>
+                  )}
                 </div>
               </div>
             );

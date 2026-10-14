@@ -11,6 +11,7 @@ import { authOptions } from "@/lib/auth";
 export default async function DayLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/signin");
+  if (!session.user.emailVerified) redirect("/verify-email");
 
   return <div className="min-h-screen bg-ground px-4 py-5">{children}</div>;
 }

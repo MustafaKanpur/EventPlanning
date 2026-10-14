@@ -40,6 +40,7 @@ export const authOptions: NextAuthOptions = {
     async session({ session, user }) {
       if (session.user) {
         session.user.id = user.id;
+        session.user.emailVerified = Boolean(user.emailVerified);
       }
       return session;
     },

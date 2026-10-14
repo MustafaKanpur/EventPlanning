@@ -54,6 +54,14 @@ export async function requireEventAdmin(eventId: string): Promise<TeamMember> {
   return me;
 }
 
+/** Org-wide changes (the roster, roles, abilities) are for org ADMINs only. */
+export async function requireOrgAdmin(): Promise<TeamMember> {
+  const me = await getCurrentTeamMember();
+  if (!me) redirect("/signin");
+  if (me.role !== "ADMIN") redirect("/forbidden");
+  return me;
+}
+
 /** Org ADMINs hold every ability; anyone else needs the row. */
 export async function hasAbility(me: Pick<TeamMember, "id" | "role">, ability: Ability): Promise<boolean> {
   if (me.role === "ADMIN") return true;
