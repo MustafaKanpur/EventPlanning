@@ -34,7 +34,8 @@ export async function listLinkOptions(
   switch (target) {
     case "SCHEDULE_ITEM": {
       const rows = await prisma.scheduleItem.findMany({
-        where: { eventId },
+        // A pending AI proposal can be rejected and deleted, so nothing links to it yet.
+        where: { eventId, aiDrafted: false },
         orderBy: [{ startTime: "asc" }, { createdAt: "asc" }],
       });
       return rows.map((row) => ({

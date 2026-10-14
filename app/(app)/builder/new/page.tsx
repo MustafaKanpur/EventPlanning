@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { requireAbility } from "@/lib/event-access";
 import { prisma } from "@/lib/prisma";
 
 import { SCREEN_TEMPLATES } from "@/lib/screen-templates";
@@ -14,6 +15,7 @@ export default async function NewScreenPage({
 }) {
   // A screen belongs to an event now, so the builder can't be opened without one.
   if (!searchParams.eventId) notFound();
+  await requireAbility("BUILDER", searchParams.eventId);
 
   const budgetLines = await prisma.budgetLine.findMany({
     where: { eventId: searchParams.eventId },

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { requireAbility } from "@/lib/event-access";
 import { prisma } from "@/lib/prisma";
 import { linkTargetOf } from "@/lib/records";
 import type { SelectOption } from "@/lib/screen-templates";
@@ -17,6 +18,7 @@ export default async function EditScreenPage({
     include: { fields: { orderBy: { position: "asc" } } },
   });
   if (!screen?.eventId) notFound();
+  await requireAbility("BUILDER", screen.eventId);
 
   const budgetLines = await prisma.budgetLine.findMany({
     where: { eventId: screen.eventId },

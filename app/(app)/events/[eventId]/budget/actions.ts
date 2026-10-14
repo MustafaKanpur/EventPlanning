@@ -1,19 +1,19 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
-import { getCurrentTeamMember } from "@/lib/current-team-member";
+import { inEvent, requireEventAccess } from "@/lib/event-access";
 import { prisma } from "@/lib/prisma";
 
-async function requireMember() {
-  const me = await getCurrentTeamMember();
-  if (!me) redirect("/signin");
-  return me;
+/** A child is only created under a budget line that belongs to the checked event. */
+async function requireLineInEvent(eventId: string, budgetLineId: string) {
+  const line = await prisma.budgetLine.findFirst({ where: { id: budgetLineId, eventId }, select: { id: true } });
+  if (!line) notFound();
 }
 
 export async function createBudgetLine(eventId: string, formData: FormData) {
-  await requireMember();
+  await requireEventAccess(eventId);
 
   const category = String(formData.get("category") ?? "").trim();
   const allocatedAmount = String(formData.get("allocatedAmount") ?? "0").trim();
@@ -29,27 +29,27 @@ export async function createBudgetLine(eventId: string, formData: FormData) {
 }
 
 export async function updateBudgetLine(eventId: string, budgetLineId: string, formData: FormData) {
-  await requireMember();
+  await requireEventAccess(eventId);
 
   const category = String(formData.get("category") ?? "").trim();
   const allocatedAmount = String(formData.get("allocatedAmount") ?? "0").trim();
   const notes = String(formData.get("notes") ?? "").trim();
 
-  await prisma.budgetLine.update({
-    where: { id: budgetLineId },
+  await inEvent(prisma.budgetLine.update({
+    where: { id: budgetLineId, eventId },
     data: {
       ...(category ? { category } : {}),
       allocatedAmount: allocatedAmount || 0,
       notes: notes || null,
     },
-  });
+  }));
 
   revalidatePath(`/events/${eventId}/budget`);
 }
 
 export async function deleteBudgetLine(eventId: string, budgetLineId: string) {
-  await requireMember();
-  await prisma.budgetLine.delete({ where: { id: budgetLineId } });
+  await requireEventAccess(eventId);
+  await inEvent(prisma.budgetLine.delete({ where: { id: budgetLineId, eventId } }));
   revalidatePath(`/events/${eventId}/budget`);
 }
 
@@ -58,7 +58,7 @@ export async function createBudgetLineItem(
   budgetLineId: string,
   formData: FormData,
 ) {
-  await requireMember();
+  await requireEventAccess(eventId);
 
   const name = String(formData.get("name") ?? "").trim();
   const plannedAmount = String(formData.get("plannedAmount") ?? "0").trim();
@@ -66,6 +66,7 @@ export async function createBudgetLineItem(
   const notes = String(formData.get("notes") ?? "").trim();
 
   if (!name) throw new Error("Line item name is required.");
+  await requireLineInEvent(eventId, budgetLineId);
 
   const count = await prisma.budgetLineItem.count({ where: { budgetLineId } });
 
@@ -84,15 +85,15 @@ export async function createBudgetLineItem(
 }
 
 export async function updateBudgetLineItem(eventId: string, itemId: string, formData: FormData) {
-  await requireMember();
+  await requireEventAccess(eventId);
 
   const name = String(formData.get("name") ?? "").trim();
   const plannedAmount = String(formData.get("plannedAmount") ?? "0").trim();
   const actualAmount = String(formData.get("actualAmount") ?? "0").trim();
   const notes = String(formData.get("notes") ?? "").trim();
 
-  await prisma.budgetLineItem.update({
-    where: { id: itemId },
+  await inEvent(prisma.budgetLineItem.update({
+    where: { id: itemId, budgetLine: { eventId } },
     data: {
       ...(name ? { name } : {}),
       // Planned and actual move independently — an item can be committed but not yet paid.
@@ -100,25 +101,26 @@ export async function updateBudgetLineItem(eventId: string, itemId: string, form
       actualAmount: actualAmount || 0,
       notes: notes || null,
     },
-  });
+  }));
 
   revalidatePath(`/events/${eventId}/budget`);
 }
 
 export async function deleteBudgetLineItem(eventId: string, itemId: string) {
-  await requireMember();
-  await prisma.budgetLineItem.delete({ where: { id: itemId } });
+  await requireEventAccess(eventId);
+  await inEvent(prisma.budgetLineItem.delete({ where: { id: itemId, budgetLine: { eventId } } }));
   revalidatePath(`/events/${eventId}/budget`);
 }
 
 export async function createVendor(eventId: string, budgetLineId: string, formData: FormData) {
-  await requireMember();
+  await requireEventAccess(eventId);
 
   const name = String(formData.get("name") ?? "").trim();
   const contactEmail = String(formData.get("contactEmail") ?? "").trim();
   const notes = String(formData.get("notes") ?? "").trim();
 
   if (!name) throw new Error("Vendor name is required.");
+  await requireLineInEvent(eventId, budgetLineId);
 
   await prisma.vendor.create({
     data: { budgetLineId, name, contactEmail: contactEmail || null, notes: notes || null },
@@ -128,26 +130,26 @@ export async function createVendor(eventId: string, budgetLineId: string, formDa
 }
 
 export async function updateVendor(eventId: string, vendorId: string, formData: FormData) {
-  await requireMember();
+  await requireEventAccess(eventId);
 
   const name = String(formData.get("name") ?? "").trim();
   const contactEmail = String(formData.get("contactEmail") ?? "").trim();
   const notes = String(formData.get("notes") ?? "").trim();
 
-  await prisma.vendor.update({
-    where: { id: vendorId },
+  await inEvent(prisma.vendor.update({
+    where: { id: vendorId, budgetLine: { eventId } },
     data: {
       ...(name ? { name } : {}),
       contactEmail: contactEmail || null,
       notes: notes || null,
     },
-  });
+  }));
 
   revalidatePath(`/events/${eventId}/budget`);
 }
 
 export async function deleteVendor(eventId: string, vendorId: string) {
-  await requireMember();
-  await prisma.vendor.delete({ where: { id: vendorId } });
+  await requireEventAccess(eventId);
+  await inEvent(prisma.vendor.delete({ where: { id: vendorId, budgetLine: { eventId } } }));
   revalidatePath(`/events/${eventId}/budget`);
 }

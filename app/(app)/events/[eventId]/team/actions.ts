@@ -1,17 +1,17 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import type { TeamRole } from "@prisma/client";
 
-import { getCurrentTeamMember } from "@/lib/current-team-member";
+import { inEvent, requireEventAdmin } from "@/lib/event-access";
 import { prisma } from "@/lib/prisma";
 
 const VALID_ROLES: TeamRole[] = ["ADMIN", "ORGANIZER", "STAFF"];
 
+// Managing who is on the event, and as what, is for its owner and admins only.
+
 export async function addEventMember(eventId: string, formData: FormData) {
-  const me = await getCurrentTeamMember();
-  if (!me) redirect("/signin");
+  await requireEventAdmin(eventId);
 
   const teamMemberId = String(formData.get("teamMemberId") ?? "").trim();
   const roleInput = String(formData.get("role") ?? "STAFF") as TeamRole;
@@ -38,23 +38,21 @@ export async function updateEventMemberRole(
   eventMemberId: string,
   formData: FormData,
 ) {
-  const me = await getCurrentTeamMember();
-  if (!me) redirect("/signin");
+  await requireEventAdmin(eventId);
 
   const roleInput = String(formData.get("role") ?? "STAFF") as TeamRole;
   const role = VALID_ROLES.includes(roleInput) ? roleInput : "STAFF";
 
-  await prisma.eventMember.update({ where: { id: eventMemberId }, data: { role } });
+  await inEvent(prisma.eventMember.update({ where: { id: eventMemberId, eventId }, data: { role } }));
 
   revalidatePath(`/events/${eventId}/team`);
   revalidatePath("/dashboard");
 }
 
 export async function removeEventMember(eventId: string, eventMemberId: string) {
-  const me = await getCurrentTeamMember();
-  if (!me) redirect("/signin");
+  await requireEventAdmin(eventId);
 
-  await prisma.eventMember.delete({ where: { id: eventMemberId } });
+  await inEvent(prisma.eventMember.delete({ where: { id: eventMemberId, eventId } }));
 
   revalidatePath(`/events/${eventId}/team`);
   revalidatePath(`/events/${eventId}/schedule`);

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { getCurrentTeamMember } from "@/lib/current-team-member";
+import { accessibleEvents, hasAbility } from "@/lib/event-access";
 import { prisma } from "@/lib/prisma";
 import { EventTabs } from "@/components/event-tabs";
 import { EventSettingsMenu } from "@/components/event-settings-menu";
@@ -24,13 +25,14 @@ export default async function EventLayout({
   const event = await prisma.event.findFirst({
     where: {
       id: params.eventId,
-      OR: [{ ownerId: me.id }, { members: { some: { teamMemberId: me.id } } }],
+      ...accessibleEvents(me),
     },
     include: {
       members: { where: { teamMemberId: me.id }, select: { role: true } },
       _count: {
         select: {
-          scheduleItems: true,
+          // Pending AI proposals aren't real blocks yet.
+          scheduleItems: { where: { aiDrafted: false } },
           budgetLines: true,
           registrants: true,
           screens: true,
@@ -40,7 +42,8 @@ export default async function EventLayout({
   });
   if (!event) notFound();
 
-  const canDelete = event.ownerId === me.id || event.members.some((m) => m.role === "ADMIN");
+  const canDelete =
+    me.role === "ADMIN" || event.ownerId === me.id || event.members.some((m) => m.role === "ADMIN");
 
   // Tabs come from the event's composed screens now, ordered by position.
   const screens = await prisma.screenDefinition.findMany({
@@ -54,7 +57,7 @@ export default async function EventLayout({
   // first block's start to the last block's end is the day as actually planned. No venue
   // field exists on Event yet, so the venue segment is simply absent.
   const window = await prisma.scheduleItem.aggregate({
-    where: { eventId: event.id },
+    where: { eventId: event.id, aiDrafted: false },
     _min: { startTime: true },
     _max: { endTime: true },
   });
@@ -109,7 +112,12 @@ export default async function EventLayout({
         </div>
       </div>
 
-      <EventTabs eventId={event.id} screens={screens} tabOrder={tabOrder} />
+      <EventTabs
+        eventId={event.id}
+        screens={screens}
+        tabOrder={tabOrder}
+        canBuild={await hasAbility(me, "BUILDER")}
+      />
 
       {children}
     </div>

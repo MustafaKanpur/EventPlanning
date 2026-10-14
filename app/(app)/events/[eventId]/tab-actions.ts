@@ -1,9 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
-import { getCurrentTeamMember } from "@/lib/current-team-member";
+import { requireEventAccess } from "@/lib/event-access";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -13,8 +12,7 @@ import { prisma } from "@/lib/prisma";
  * which the reader ignores; nothing has to be renumbered.
  */
 export async function reorderEventTabs(eventId: string, orderedKeys: string[]) {
-  const me = await getCurrentTeamMember();
-  if (!me) redirect("/signin");
+  await requireEventAccess(eventId);
 
   await prisma.event.update({
     where: { id: eventId },

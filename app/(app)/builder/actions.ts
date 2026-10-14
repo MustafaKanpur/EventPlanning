@@ -1,11 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import type { Prisma } from "@prisma/client";
 
-import { getCurrentTeamMember } from "@/lib/current-team-member";
+import { inEvent, requireAbility } from "@/lib/event-access";
 import { prisma } from "@/lib/prisma";
+import { missingRequirement } from "@/lib/screen-views";
 import type { BuilderField, BuilderScreenInput } from "./types";
 
 /** Only currency and date fields can post anywhere; anything else stores null. */
@@ -75,7 +76,7 @@ async function syncFields(
 
     if (field.id) {
       const updated = await tx.fieldDefinition.update({
-        where: { id: field.id },
+        where: { id: field.id, screenId },
         data: {
           label,
           type: field.type,
@@ -109,23 +110,30 @@ async function syncFields(
 
 function validate(input: BuilderScreenInput): { error: string } | undefined {
   if (!input.name.trim()) return { error: "Give the screen a name." };
-  // Other view types don't block here: the screen itself offers to create the field it
-  // needs, which is friendlier than refusing to save. A checklist is the exception —
-  // without a checkbox there is nothing to check off at all.
-  if (input.viewType === "CHECKLIST" && !input.fields.some((f) => f.type === "CHECKBOX")) {
-    return { error: "A checklist needs a checkbox field to track completion." };
+  // A published screen must have what its view needs; only a draft may be incomplete.
+  const missing = input.isDraft ? null : missingRequirement(input.viewType, input.fields);
+  if (missing) {
+    return { error: `A ${input.viewType.toLowerCase()} needs ${missing.need}. Add one, or save as a draft.` };
   }
   return undefined;
+}
+
+/** A currency field may only roll up into one of this event's budget lines. */
+async function requireRollupsInEvent(eventId: string, fields: BuilderField[]) {
+  const ids = fields.map(rollupFor).filter((id): id is string => Boolean(id) && id !== "RUN_OF_SHOW");
+  if (ids.length === 0) return;
+  const found = await prisma.budgetLine.count({ where: { id: { in: ids }, eventId } });
+  if (found !== new Set(ids).size) notFound();
 }
 
 export async function createScreen(
   input: BuilderScreenInput,
 ): Promise<{ error: string } | undefined> {
-  const me = await getCurrentTeamMember();
-  if (!me) redirect("/signin");
+  const me = await requireAbility("BUILDER", input.eventId);
 
   const invalid = validate(input);
   if (invalid) return invalid;
+  await requireRollupsInEvent(input.eventId, input.fields);
 
   const screen = await prisma.$transaction(async (tx) => {
     const count = await tx.screenDefinition.count({ where: { eventId: input.eventId } });
@@ -160,15 +168,15 @@ export async function updateScreen(
   screenId: string,
   input: BuilderScreenInput,
 ): Promise<{ error: string } | undefined> {
-  const me = await getCurrentTeamMember();
-  if (!me) redirect("/signin");
+  await requireAbility("BUILDER", input.eventId);
 
   const invalid = validate(input);
   if (invalid) return invalid;
+  await requireRollupsInEvent(input.eventId, input.fields);
 
-  await prisma.$transaction(async (tx) => {
+  await inEvent(prisma.$transaction(async (tx) => {
     await tx.screenDefinition.update({
-      where: { id: screenId },
+      where: { id: screenId, eventId: input.eventId },
       data: {
         name: input.name.trim(),
         icon: input.icon || null,
@@ -185,7 +193,7 @@ export async function updateScreen(
           : null,
       },
     });
-  });
+  }));
 
   revalidatePath(`/events/${input.eventId}`, "layout");
   redirect(
@@ -194,10 +202,9 @@ export async function updateScreen(
 }
 
 export async function deleteScreen(eventId: string, screenId: string) {
-  const me = await getCurrentTeamMember();
-  if (!me) redirect("/signin");
+  await requireAbility("BUILDER", eventId);
 
-  await prisma.screenDefinition.delete({ where: { id: screenId } }); // fields + records cascade
+  await inEvent(prisma.screenDefinition.delete({ where: { id: screenId, eventId } })); // fields + records cascade
 
   revalidatePath(`/events/${eventId}`, "layout");
   redirect(`/events/${eventId}/schedule`);

@@ -1,9 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
-import { getCurrentTeamMember } from "@/lib/current-team-member";
+import { requireEventAccess } from "@/lib/event-access";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -13,13 +13,13 @@ import { prisma } from "@/lib/prisma";
  * start to now; completing it ends it now. The timeline stays the single source of truth.
  */
 export async function markBlockStarted(eventId: string, scheduleItemId: string) {
-  const me = await getCurrentTeamMember();
-  if (!me) redirect("/signin");
+  await requireEventAccess(eventId);
 
-  const block = await prisma.scheduleItem.findUniqueOrThrow({
-    where: { id: scheduleItemId },
+  const block = await prisma.scheduleItem.findFirst({
+    where: { id: scheduleItemId, eventId, aiDrafted: false },
     select: { startTime: true, endTime: true },
   });
+  if (!block) notFound();
   if (!block.startTime || !block.endTime) return;
 
   const now = new Date();
@@ -36,13 +36,13 @@ export async function markBlockStarted(eventId: string, scheduleItemId: string) 
 }
 
 export async function markBlockComplete(eventId: string, scheduleItemId: string) {
-  const me = await getCurrentTeamMember();
-  if (!me) redirect("/signin");
+  await requireEventAccess(eventId);
 
-  const block = await prisma.scheduleItem.findUniqueOrThrow({
-    where: { id: scheduleItemId },
+  const block = await prisma.scheduleItem.findFirst({
+    where: { id: scheduleItemId, eventId, aiDrafted: false },
     select: { startTime: true },
   });
+  if (!block) notFound();
   if (!block.startTime) return;
 
   const now = new Date();

@@ -280,6 +280,8 @@ export async function applyTemplateToEvent(
         groupByFieldKey: screen.groupByFieldKey,
         position: screen.position,
         isSystem: screen.isSystem,
+        // An incomplete template screen arrives as a draft for a builder to finish.
+        isDraft: screen.isDraft,
         createdById: createdById ?? null,
         fields: {
           create: screen.fields.map((f) => ({

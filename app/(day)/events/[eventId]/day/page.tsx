@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { getCurrentTeamMember } from "@/lib/current-team-member";
+import { accessibleEvents } from "@/lib/event-access";
 import { prisma } from "@/lib/prisma";
 import { displayName, formatDuration, formatLongDate, formatTime } from "@/lib/format";
 import { dayState, isToday } from "@/lib/day-of";
@@ -31,11 +32,12 @@ export default async function DayOfPage({ params }: { params: { eventId: string 
   const event = await prisma.event.findFirst({
     where: {
       id: eventId,
-      OR: [{ ownerId: me.id }, { members: { some: { teamMemberId: me.id } } }],
+      ...accessibleEvents(me),
     },
     include: {
       owner: true,
-      scheduleItems: { orderBy: { startTime: "asc" } },
+      // Pending AI proposals stay off the event-day view until someone approves them.
+      scheduleItems: { where: { aiDrafted: false }, orderBy: { startTime: "asc" } },
       budgetLines: { include: { vendors: true } },
     },
   });

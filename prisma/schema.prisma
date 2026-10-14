@@ -156,10 +156,29 @@ model TeamMember {
   ownedEvents       Event[]            @relation("EventOwner")
   eventMemberships  EventMember[]
   screenDefinitions ScreenDefinition[]
+  abilities         TeamMemberAbility[]
 
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   templates Template[]
+}
+
+/// Org-wide abilities on top of a member's role, one row per ability held. They only
+/// apply on events the member can already access. Org ADMINs have every ability
+/// implicitly, without rows.
+enum Ability {
+  BUILDER
+  VOLUNTEER_ADMIN
+}
+
+model TeamMemberAbility {
+  id           String     @id @default(cuid())
+  teamMemberId String
+  teamMember   TeamMember @relation(fields: [teamMemberId], references: [id], onDelete: Cascade)
+  ability      Ability
+  createdAt    DateTime   @default(now())
+
+  @@unique([teamMemberId, ability])
 }
 
 model Event {

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { getCurrentTeamMember } from "@/lib/current-team-member";
+import { hasAbility } from "@/lib/event-access";
 import { prisma } from "@/lib/prisma";
 import { ScreenView } from "@/components/screens/screen-view";
 import { listOptionsForTargets } from "@/lib/link-targets";
@@ -22,6 +24,12 @@ export default async function ScreenPage({
   });
   if (!screen || screen.eventId !== params.eventId) notFound();
 
+  // The event layout has already checked access. Drafts may be incomplete, so only
+  // builders see them; everyone else only ever sees screens that can function.
+  const me = await getCurrentTeamMember();
+  const canBuild = me ? await hasAbility(me, "BUILDER") : false;
+  if (screen.isDraft && !canBuild) notFound();
+
   // Only the targets this screen actually links to get loaded.
   const targets = screen.fields
     .map((f) => linkTargetOf(f))
@@ -42,12 +50,14 @@ export default async function ScreenPage({
             {screen.isSystem && " · default screen"}
           </p>
         </div>
-        <Link
-          href={`/builder/${screen.id}/edit?eventId=${params.eventId}`}
-          className="text-ui text-ink-muted transition-colors hover:text-ink"
-        >
-          Edit fields
-        </Link>
+        {canBuild && (
+          <Link
+            href={`/builder/${screen.id}/edit?eventId=${params.eventId}`}
+            className="text-ui text-ink-muted transition-colors hover:text-ink"
+          >
+            Edit fields
+          </Link>
+        )}
       </div>
 
       <ScreenView

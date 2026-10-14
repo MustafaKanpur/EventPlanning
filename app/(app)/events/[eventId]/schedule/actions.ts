@@ -1,19 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { draftRunOfShow } from "@/lib/ai/run-of-show";
-import { getCurrentTeamMember } from "@/lib/current-team-member";
+import { inEvent, requireEventAccess } from "@/lib/event-access";
 import { formatTime } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
-import { durationMinutes, onEventDay, timeValueToMinutes } from "@/lib/run-of-show";
-
-async function requireMember() {
-  const me = await getCurrentTeamMember();
-  if (!me) redirect("/signin");
-  return me;
-}
+import { DEFAULT_START_MINUTES, durationMinutes, onEventDay, timeValueToMinutes } from "@/lib/run-of-show";
 
 function revalidateEvent(eventId: string) {
   revalidatePath(`/events/${eventId}/schedule`);
@@ -26,7 +20,7 @@ function revalidateEvent(eventId: string) {
  * than guessed at.
  */
 export async function createScheduleItem(eventId: string, formData: FormData) {
-  await requireMember();
+  await requireEventAccess(eventId);
 
   const title = String(formData.get("title") ?? "").trim();
   const startTime = String(formData.get("startTime") ?? "");
@@ -57,7 +51,7 @@ export async function updateScheduleItem(
   scheduleItemId: string,
   formData: FormData,
 ) {
-  await requireMember();
+  await requireEventAccess(eventId);
 
   const title = String(formData.get("title") ?? "").trim();
   const startTime = String(formData.get("startTime") ?? "");
@@ -68,8 +62,8 @@ export async function updateScheduleItem(
   if (!title) throw new Error("Title is required.");
   const placed = Boolean(startTime && endTime);
 
-  await prisma.scheduleItem.update({
-    where: { id: scheduleItemId },
+  await inEvent(prisma.scheduleItem.update({
+    where: { id: scheduleItemId, eventId },
     data: {
       title,
       startTime: placed ? new Date(startTime) : null,
@@ -77,7 +71,7 @@ export async function updateScheduleItem(
       location: location || null,
       notes: notes || null,
     },
-  });
+  }));
 
   revalidateEvent(eventId);
 }
@@ -100,7 +94,7 @@ export async function placeScheduleItem(
   anchorISO: string,
   position: "after" | "before" = "after",
 ) {
-  await requireMember();
+  await requireEventAccess(eventId);
 
   const anchor = new Date(anchorISO);
   if (Number.isNaN(anchor.getTime())) throw new Error("Invalid slot.");
@@ -109,7 +103,7 @@ export async function placeScheduleItem(
     where: { id: scheduleItemId, eventId },
     select: { startTime: true, endTime: true, durationMinutes: true },
   });
-  if (!item) throw new Error("Block not found.");
+  if (!item) notFound();
 
   const minutes = Math.max(5, lengthOf(item));
   const start = position === "before" ? new Date(anchor.getTime() - minutes * 60_000) : anchor;
@@ -117,7 +111,8 @@ export async function placeScheduleItem(
 
   await prisma.scheduleItem.update({
     where: { id: scheduleItemId },
-    data: { startTime: start, endTime: end, durationMinutes: minutes, aiDrafted: false },
+    // Moving never approves: an AI block stays pending until someone clicks Approve.
+    data: { startTime: start, endTime: end, durationMinutes: minutes },
   });
 
   revalidateEvent(eventId);
@@ -125,13 +120,13 @@ export async function placeScheduleItem(
 
 /** Sends a block back to "Not yet placed" without deleting anything, keeping its length. */
 export async function unplaceScheduleItem(eventId: string, scheduleItemId: string) {
-  await requireMember();
+  await requireEventAccess(eventId);
 
   const item = await prisma.scheduleItem.findFirst({
     where: { id: scheduleItemId, eventId },
     select: { startTime: true, endTime: true, durationMinutes: true },
   });
-  if (!item) throw new Error("Block not found.");
+  if (!item) notFound();
 
   await prisma.scheduleItem.update({
     where: { id: scheduleItemId },
@@ -143,7 +138,7 @@ export async function unplaceScheduleItem(eventId: string, scheduleItemId: strin
 
 /** Edits a block still in the tray (an AI draft or a hand-added one) before it's placed. */
 export async function updateUnplacedItem(eventId: string, scheduleItemId: string, formData: FormData) {
-  await requireMember();
+  await requireEventAccess(eventId);
 
   const title = String(formData.get("title") ?? "").trim();
   const location = String(formData.get("location") ?? "").trim();
@@ -160,7 +155,7 @@ export async function updateUnplacedItem(eventId: string, scheduleItemId: string
     where: { id: scheduleItemId, eventId, startTime: null },
     select: { event: { select: { eventDate: true } } },
   });
-  if (!item) throw new Error("Block not found.");
+  if (!item) notFound();
 
   await prisma.scheduleItem.update({
     where: { id: scheduleItemId },
@@ -178,15 +173,34 @@ export async function updateUnplacedItem(eventId: string, scheduleItemId: string
 
 /** When the programme starts. Only sets where an empty run of show opens. */
 export async function setEventStartTime(eventId: string, formData: FormData) {
-  await requireMember();
+  await requireEventAccess(eventId);
   const startMinutes = timeValueToMinutes(String(formData.get("startTime") ?? ""));
   await prisma.event.update({ where: { id: eventId }, data: { startMinutes } });
   revalidateEvent(eventId);
 }
 
+/** Keeps an AI-proposed block: it becomes an ordinary block on the run of show. */
+export async function approveDraftBlock(eventId: string, scheduleItemId: string) {
+  await requireEventAccess(eventId);
+  await inEvent(
+    prisma.scheduleItem.update({
+      where: { id: scheduleItemId, eventId, aiDrafted: true },
+      data: { aiDrafted: false },
+    }),
+  );
+  revalidateEvent(eventId);
+}
+
+/** Throws away an AI-proposed block. Only pending blocks can be rejected. */
+export async function rejectDraftBlock(eventId: string, scheduleItemId: string) {
+  await requireEventAccess(eventId);
+  await inEvent(prisma.scheduleItem.delete({ where: { id: scheduleItemId, eventId, aiDrafted: true } }));
+  revalidateEvent(eventId);
+}
+
 export async function deleteScheduleItem(eventId: string, scheduleItemId: string) {
-  await requireMember();
-  await prisma.scheduleItem.delete({ where: { id: scheduleItemId } });
+  await requireEventAccess(eventId);
+  await inEvent(prisma.scheduleItem.delete({ where: { id: scheduleItemId, eventId } }));
   revalidateEvent(eventId);
 }
 
@@ -196,19 +210,18 @@ const DRAFTS_PER_DAY = 20;
 export type DraftState = { error?: string; created?: number };
 
 /**
- * "Draft with AI": the model proposes blocks, which land in "Not yet placed" for the
- * organizer to drag onto the timeline. Nothing is ever placed by the model.
+ * "Draft with AI": the model proposes blocks, which go onto the timeline as pending
+ * proposals (aiDrafted) for the organizer to approve or reject. Pending proposals are
+ * included in what the model sees, so drafting twice doesn't duplicate them.
  */
 export async function draftScheduleItems(eventId: string, rawPrompt: string): Promise<DraftState> {
-  const me = await requireMember();
+  const me = await requireEventAccess(eventId);
   if (!me.userId) redirect("/signin");
 
-  // Same access rule as the event layout: the owner or anyone staffed on it.
-  const event = await prisma.event.findFirst({
-    where: { id: eventId, OR: [{ ownerId: me.id }, { members: { some: { teamMemberId: me.id } } }] },
+  const event = await prisma.event.findUniqueOrThrow({
+    where: { id: eventId },
     include: { scheduleItems: { orderBy: [{ startTime: "asc" }, { createdAt: "asc" }] } },
   });
-  if (!event) return { error: "Event not found." };
 
   const prompt = rawPrompt.trim();
   if (!prompt) return { error: "Describe the programme you want drafted." };
@@ -265,24 +278,34 @@ export async function draftScheduleItems(eventId: string, rawPrompt: string): Pr
     return { error: result.error };
   }
 
-  const suggestedStart = (hhmm: string | null) => {
-    const minutes = hhmm ? timeValueToMinutes(hhmm) : null;
-    return minutes === null ? null : onEventDay(day, minutes);
-  };
+  // Drafts go straight onto the timeline as pending (aiDrafted) for the organizer to
+  // approve or reject. A block with a suggested time goes there; one without follows the
+  // previous drafted block, or the end of the day so far, or the day's start.
+  const latestEnd = event.scheduleItems.reduce<Date | null>(
+    (latest, item) => (item.endTime && (!latest || item.endTime > latest) ? item.endTime : latest),
+    null,
+  );
+  let cursor = latestEnd ?? onEventDay(day, event.startMinutes ?? DEFAULT_START_MINUTES);
+  const drafts = result.blocks.map((block) => {
+    const minutes = block.suggestedStart ? timeValueToMinutes(block.suggestedStart) : null;
+    const startTime = minutes === null ? cursor : onEventDay(day, minutes);
+    const endTime = new Date(startTime.getTime() + block.durationMinutes * 60_000);
+    cursor = endTime;
+    return {
+      eventId: event.id, // from the access-checked event, never from the model or the client
+      title: block.title,
+      location: block.location,
+      notes: block.notes,
+      aiDrafted: true,
+      startTime,
+      endTime,
+      durationMinutes: block.durationMinutes,
+      suggestedStart: minutes === null ? null : startTime,
+    };
+  });
 
-  // eventId comes from the access-checked event, never from the model or the client.
   await prisma.$transaction([
-    prisma.scheduleItem.createMany({
-      data: result.blocks.map((block) => ({
-        eventId: event.id,
-        title: block.title,
-        location: block.location,
-        notes: block.notes,
-        aiDrafted: true,
-        durationMinutes: block.durationMinutes,
-        suggestedStart: suggestedStart(block.suggestedStart),
-      })),
-    }),
+    prisma.scheduleItem.createMany({ data: drafts }),
     prisma.agentAction.update({
       where: { id: action.id },
       data: {

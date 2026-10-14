@@ -3,7 +3,10 @@ import { createTeamMember, updateTeamMember } from "./actions";
 import { TEAM_ROLE_STYLES } from "@/lib/status-styles";
 
 export default async function TeamPage() {
-  const teamMembers = await prisma.teamMember.findMany({ orderBy: { name: "asc" } });
+  const teamMembers = await prisma.teamMember.findMany({
+    orderBy: { name: "asc" },
+    include: { abilities: { select: { ability: true } } },
+  });
 
   return (
     <div className="space-y-6">
@@ -117,6 +120,26 @@ export default async function TeamPage() {
                           <option value="ADMIN">Admin</option>
                         </select>
                       </div>
+                      <fieldset className="space-y-1">
+                        <legend className="text-xs font-medium text-ink-muted">Abilities</legend>
+                        {(
+                          [
+                            ["BUILDER", "Builder"],
+                            ["VOLUNTEER_ADMIN", "Volunteer admin"],
+                          ] as const
+                        ).map(([value, label]) => (
+                          <label key={value} className="flex items-center gap-2 text-sm text-ink">
+                            <input
+                              type="checkbox"
+                              name="abilities"
+                              value={value}
+                              defaultChecked={member.abilities.some((a) => a.ability === value)}
+                            />
+                            {label}
+                          </label>
+                        ))}
+                        <p className="text-xs text-ink-muted">Admins have every ability.</p>
+                      </fieldset>
                       <button
                         type="submit"
                         className="rounded-[3px] bg-accent px-3 py-1.5 text-xs font-medium text-panel transition hover:opacity-90"

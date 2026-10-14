@@ -3,9 +3,8 @@ import type { FieldDefinition, FieldType, ViewType } from "@prisma/client";
 import type { SelectOption } from "./screen-templates";
 
 /**
- * What each view type needs before it can render anything. When a screen doesn't have
- * the field, the view offers to create it rather than refusing to draw — a view type is
- * a choice about presentation, not a wall.
+ * What each view type needs before it can render anything. The builder won't publish a
+ * screen without it; a draft that lacks it shows builders a prompt to add the field.
  */
 export type ViewRequirement = {
   types: FieldType[];
@@ -50,7 +49,7 @@ export const VIEW_REQUIREMENTS: Partial<Record<ViewType, ViewRequirement>> = {
 
 export function missingRequirement(
   viewType: ViewType,
-  fields: FieldDefinition[],
+  fields: Pick<FieldDefinition, "type">[],
 ): ViewRequirement | null {
   const requirement = VIEW_REQUIREMENTS[viewType];
   if (!requirement) return null;

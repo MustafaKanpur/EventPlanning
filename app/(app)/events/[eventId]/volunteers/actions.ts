@@ -1,15 +1,16 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
-import { getCurrentTeamMember } from "@/lib/current-team-member";
+import { inEvent, requireAbility } from "@/lib/event-access";
+
+// Shifts and sign-ups are run by volunteer admins (and org ADMINs), not every member.
 import { prisma } from "@/lib/prisma";
 import { GENDERS, optionalInt } from "@/lib/volunteers";
 
 export async function createShift(eventId: string, formData: FormData) {
-  const me = await getCurrentTeamMember();
-  if (!me) redirect("/signin");
+  await requireAbility("VOLUNTEER_ADMIN", eventId);
 
   const title = String(formData.get("title") ?? "").trim();
   const startTime = new Date(String(formData.get("startTime") ?? ""));
@@ -39,23 +40,20 @@ export async function createShift(eventId: string, formData: FormData) {
 }
 
 export async function deleteShift(eventId: string, shiftId: string) {
-  const me = await getCurrentTeamMember();
-  if (!me) redirect("/signin");
-  await prisma.shift.delete({ where: { id: shiftId, eventId } });
+  await requireAbility("VOLUNTEER_ADMIN", eventId);
+  await inEvent(prisma.shift.delete({ where: { id: shiftId, eventId } }));
   revalidatePath(`/events/${eventId}/volunteers`);
 }
 
 export async function removeSignup(eventId: string, signupId: string) {
-  const me = await getCurrentTeamMember();
-  if (!me) redirect("/signin");
-  await prisma.shiftSignup.delete({ where: { id: signupId, shift: { eventId } } });
+  await requireAbility("VOLUNTEER_ADMIN", eventId);
+  await inEvent(prisma.shiftSignup.delete({ where: { id: signupId, shift: { eventId } } }));
   revalidatePath(`/events/${eventId}/volunteers`);
 }
 
 /** Staff can override the shift's age/gender/experience rules, but not its capacity. */
 export async function addSignup(eventId: string, shiftId: string, formData: FormData) {
-  const me = await getCurrentTeamMember();
-  if (!me) redirect("/signin");
+  await requireAbility("VOLUNTEER_ADMIN", eventId);
 
   const volunteerId = String(formData.get("volunteerId") ?? "");
   if (!volunteerId) throw new Error("Pick a volunteer.");
@@ -64,7 +62,7 @@ export async function addSignup(eventId: string, shiftId: string, formData: Form
     where: { id: shiftId, eventId },
     include: { _count: { select: { signups: true } } },
   });
-  if (!shift) throw new Error("Shift not found.");
+  if (!shift) notFound();
   // ponytail: count-then-insert, no lock; staff adds are rare enough. The public form is serializable.
   if (shift._count.signups >= shift.capacity) throw new Error("This shift is full.");
 

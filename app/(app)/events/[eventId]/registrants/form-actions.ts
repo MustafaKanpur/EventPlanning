@@ -1,10 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import type { Prisma } from "@prisma/client";
 
-import { getCurrentTeamMember } from "@/lib/current-team-member";
+import { inEvent, requireEventAccess } from "@/lib/event-access";
 import { prisma } from "@/lib/prisma";
 import { REGISTRATION_FIELD_TYPES } from "@/lib/registration-form";
 import type { BuilderField } from "@/app/(app)/builder/types";
@@ -37,15 +37,21 @@ export async function saveRegistrationForm(
   screenId: string,
   fields: BuilderField[],
 ): Promise<{ error: string } | undefined> {
-  const me = await getCurrentTeamMember();
-  if (!me) redirect("/signin");
+  await requireEventAccess(eventId);
+
+  // Only this event's own registration form; fields are then updated within that screen.
+  const form = await prisma.screenDefinition.findFirst({
+    where: { id: screenId, eventId, isRegistrationForm: true },
+    select: { id: true },
+  });
+  if (!form) notFound();
 
   const rejected = fields.find((f) => !REGISTRATION_FIELD_TYPES.includes(f.type));
   if (rejected) {
     return { error: `${rejected.label || "That field"} can't be asked on a public form.` };
   }
 
-  await prisma.$transaction(async (tx) => {
+  await inEvent(prisma.$transaction(async (tx) => {
     const existing = await tx.fieldDefinition.findMany({
       where: { screenId },
       select: { id: true, key: true },
@@ -68,7 +74,7 @@ export async function saveRegistrationForm(
 
       if (f.id) {
         await tx.fieldDefinition.update({
-          where: { id: f.id },
+          where: { id: f.id, screenId },
           data: { label, type: f.type, options, required: f.required, position: i },
         });
       } else {
@@ -85,7 +91,7 @@ export async function saveRegistrationForm(
         });
       }
     }
-  });
+  }));
 
   revalidatePath(`/events/${eventId}/registrants`);
   revalidatePath(`/register/${eventId}`);

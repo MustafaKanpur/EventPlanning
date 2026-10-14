@@ -46,6 +46,7 @@ const config: Config = {
         warn: "#8A6A1F", // pending, gaps, unpaid
         danger: "#A33A1F", // overdue, over budget
         success: "#6E8F5E", // registration fill
+        proposed: "#2F5FA8", // AI-proposed blocks awaiting approval
       },
       fontFamily: {
         sans: ["var(--font-archivo)", "ui-sans-serif", "sans-serif"],

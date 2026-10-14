@@ -1,10 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import type { PaymentStatus } from "@prisma/client";
 
-import { getCurrentTeamMember } from "@/lib/current-team-member";
+import { inEvent, requireEventAccess } from "@/lib/event-access";
 import { prisma } from "@/lib/prisma";
 
 const VALID_STATUSES: PaymentStatus[] = ["UNPAID", "PENDING", "PAID", "REFUNDED"];
@@ -16,20 +16,22 @@ const VALID_STATUSES: PaymentStatus[] = ["UNPAID", "PENDING", "PAID", "REFUNDED"
  * change to avoid double-counting — and makes the figure impossible to drift.
  */
 export async function updateRegistrant(eventId: string, registrantId: string, formData: FormData) {
-  const me = await getCurrentTeamMember();
-  if (!me) redirect("/signin");
+  await requireEventAccess(eventId);
 
   const statusInput = String(formData.get("paymentStatus") ?? "PENDING") as PaymentStatus;
   const paymentStatus = VALID_STATUSES.includes(statusInput) ? statusInput : "PENDING";
   const budgetLineId = String(formData.get("budgetLineId") ?? "").trim() || null;
+  if (budgetLineId && !(await prisma.budgetLine.findFirst({ where: { id: budgetLineId, eventId }, select: { id: true } }))) {
+    notFound();
+  }
 
   const name = String(formData.get("name") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
   const amountRaw = String(formData.get("amount") ?? "").trim();
   const notes = String(formData.get("notes") ?? "").trim();
 
-  await prisma.registrant.update({
-    where: { id: registrantId },
+  await inEvent(prisma.registrant.update({
+    where: { id: registrantId, eventId },
     data: {
       paymentStatus,
       budgetLineId,
@@ -39,7 +41,7 @@ export async function updateRegistrant(eventId: string, registrantId: string, fo
       ...(formData.has("amount") ? { amount: amountRaw || 0 } : {}),
       ...(formData.has("notes") ? { notes: notes || null } : {}),
     },
-  });
+  }));
 
   revalidatePath(`/events/${eventId}/registrants`);
   revalidatePath(`/events/${eventId}/budget`);

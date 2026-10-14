@@ -41,6 +41,7 @@ import {
   valuesOf,
 } from "@/lib/records";
 import { DraftWithAi } from "./draft-with-ai";
+import { PendingBlock } from "./pending-block";
 import { DraggableRow, DropZone, EndSlot, GapSlot, RunOfShowDnd, UnplacedBlock } from "./run-of-show-dnd";
 import { PrintTrigger } from "./print-trigger";
 
@@ -312,12 +313,31 @@ export default async function RunOfShowPage({
                   return (
                     <div key={row.block.id}>
                       <DraggableRow id={row.block.id} title={row.block.title}>
-                        <BlockRow
-                          eventId={eventId}
-                          block={row.block}
-                          teamMembers={teamMembers}
-                          overlaps={overlapsWith.get(row.block.id)}
-                        />
+                        {itemById.get(row.block.id)?.aiDrafted ? (
+                          <PendingBlock
+                            eventId={eventId}
+                            id={row.block.id}
+                            title={row.block.title}
+                            start={formatTime(row.block.startTime)}
+                            timeLabel={`${formatTime(row.block.startTime)}–${formatTime(end)} · ${formatDuration(
+                              durationMinutes(row.block.startTime, end),
+                            )}`}
+                            location={row.block.location}
+                            notes={row.block.notes}
+                            overlaps={
+                              overlapsWith.has(row.block.id)
+                                ? `Overlaps ${overlapsWith.get(row.block.id)!.join(", ")}`
+                                : null
+                            }
+                          />
+                        ) : (
+                          <BlockRow
+                            eventId={eventId}
+                            block={row.block}
+                            teamMembers={teamMembers}
+                            overlaps={overlapsWith.get(row.block.id)}
+                          />
+                        )}
                       </DraggableRow>
                       {zoneBelow && (
                         <DropZone

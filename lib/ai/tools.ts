@@ -43,10 +43,10 @@ export const CHECK_SCHEDULE_TOOL: Anthropic.Tool = {
   input_schema: BLOCKS_INPUT,
 };
 
-/** The final answer. Calling it ends the draft; the blocks are parked for the organizer to place. */
+/** The final answer. Calling it ends the draft; the blocks go on the schedule as pending proposals. */
 export const PROPOSE_BLOCKS_TOOL: Anthropic.Tool = {
   name: PROPOSE_BLOCKS,
-  description: "Submit the final run-of-show blocks for the event. They are parked for the organizer to place.",
+  description: "Submit the final run-of-show blocks for the event. They go onto the schedule as proposals for the organizer to approve or reject.",
   strict: true,
   input_schema: BLOCKS_INPUT,
 };

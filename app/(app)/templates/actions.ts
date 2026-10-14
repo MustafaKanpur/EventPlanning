@@ -4,13 +4,13 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { getCurrentTeamMember } from "@/lib/current-team-member";
+import { requireEventAccess } from "@/lib/event-access";
 import { prisma } from "@/lib/prisma";
 import { saveEventAsTemplate } from "@/lib/templates";
 
 /** From the event settings menu: bottle this event's screens for next year. */
 export async function createTemplateFromEvent(eventId: string, formData: FormData) {
-  const me = await getCurrentTeamMember();
-  if (!me) redirect("/signin");
+  const me = await requireEventAccess(eventId);
 
   const event = await prisma.event.findUniqueOrThrow({
     where: { id: eventId },

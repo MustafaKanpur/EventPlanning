@@ -93,10 +93,13 @@ export function EventTabs({
   eventId,
   screens,
   tabOrder,
+  canBuild,
 }: {
   eventId: string;
   screens: ScreenTab[];
   tabOrder: string[];
+  /** Only builders can add screens. */
+  canBuild: boolean;
 }) {
   const pathname = usePathname();
 
@@ -159,12 +162,14 @@ export function EventTabs({
       </nav>
 
       {/* An action, not a section — so it sits outside the tab list as a plain text button. */}
-      <Link
-        href={`/builder/new?eventId=${eventId}`}
-        className="flex h-11 shrink-0 items-center text-ui text-ink-muted transition-colors hover:text-ink"
-      >
-        + New screen
-      </Link>
+      {canBuild && (
+        <Link
+          href={`/builder/new?eventId=${eventId}`}
+          className="flex h-11 shrink-0 items-center text-ui text-ink-muted transition-colors hover:text-ink"
+        >
+          + New screen
+        </Link>
+      )}
     </div>
   );
 }

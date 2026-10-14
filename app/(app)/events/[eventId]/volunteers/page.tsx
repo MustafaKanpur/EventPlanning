@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { getCurrentTeamMember } from "@/lib/current-team-member";
+import { hasAbility } from "@/lib/event-access";
 import { prisma } from "@/lib/prisma";
 import { formatShortDate, formatTime } from "@/lib/format";
 import { GENDERS, describeRules } from "@/lib/volunteers";
@@ -29,6 +31,9 @@ export default async function EventVolunteersPage({ params }: { params: { eventI
   const base = process.env.NEXT_PUBLIC_SITE_URL ?? process.env.NEXTAUTH_URL ?? "";
   const signupUrl = `${base.replace(/\/$/, "")}/volunteer/${eventId}`;
   const addShift = createShift.bind(null, eventId);
+  // Everyone on the event can see shifts; only volunteer admins change them.
+  const me = await getCurrentTeamMember();
+  const canManage = me ? await hasAbility(me, "VOLUNTEER_ADMIN") : false;
 
   return (
     <div className="space-y-8">
@@ -49,7 +54,9 @@ export default async function EventVolunteersPage({ params }: { params: { eventI
       </section>
 
       {shifts.length === 0 ? (
-        <p className="text-[13px] text-ink-muted">No shifts yet. Add one below, then share the sign-up link.</p>
+        <p className="text-[13px] text-ink-muted">
+          {canManage ? "No shifts yet. Add one below, then share the sign-up link." : "No shifts yet."}
+        </p>
       ) : (
         <div className="space-y-4">
           {shifts.map((shift) => {
@@ -78,11 +85,13 @@ export default async function EventVolunteersPage({ params }: { params: { eventI
                         className="mt-1 w-24"
                       />
                     </div>
-                    <form action={deleteShift.bind(null, eventId, shift.id)}>
-                      <button type="submit" className="text-meta text-ink-muted hover:text-danger">
-                        Delete
-                      </button>
-                    </form>
+                    {canManage && (
+                      <form action={deleteShift.bind(null, eventId, shift.id)}>
+                        <button type="submit" className="text-meta text-ink-muted hover:text-danger">
+                          Delete
+                        </button>
+                      </form>
+                    )}
                   </div>
                 </div>
                 {shift.signups.length === 0 ? (
@@ -98,17 +107,19 @@ export default async function EventVolunteersPage({ params }: { params: { eventI
                           {signup.volunteer.status === "PENDING" && (
                             <StatusDot status="PENDING" label="Volunteer pending" />
                           )}
-                          <form action={removeSignup.bind(null, eventId, signup.id)}>
-                            <button type="submit" className="text-meta text-ink-muted hover:text-danger">
-                              Remove
-                            </button>
-                          </form>
+                          {canManage && (
+                            <form action={removeSignup.bind(null, eventId, signup.id)}>
+                              <button type="submit" className="text-meta text-ink-muted hover:text-danger">
+                                Remove
+                              </button>
+                            </form>
+                          )}
                         </div>
                       </li>
                     ))}
                   </ul>
                 )}
-                {shift.signups.length < shift.capacity && available.length > 0 && (
+                {canManage && shift.signups.length < shift.capacity && available.length > 0 && (
                   <form
                     action={addSignup.bind(null, eventId, shift.id)}
                     className="flex items-center gap-2 border-t border-rule-soft px-4 py-2"
@@ -137,6 +148,7 @@ export default async function EventVolunteersPage({ params }: { params: { eventI
         </div>
       )}
 
+      {canManage && (
       <section>
         <h2 className="mb-2 text-micro uppercase text-ink-muted">Add a shift</h2>
         <form action={addShift} className="grid gap-3 sm:grid-cols-4">
@@ -180,6 +192,7 @@ export default async function EventVolunteersPage({ params }: { params: { eventI
           </div>
         </form>
       </section>
+      )}
     </div>
   );
 }

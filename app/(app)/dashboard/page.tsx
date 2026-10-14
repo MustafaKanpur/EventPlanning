@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { getCurrentTeamMember } from "@/lib/current-team-member";
+import { accessibleEvents } from "@/lib/event-access";
 import { prisma } from "@/lib/prisma";
 import { daysUntil, displayName, formatMoney } from "@/lib/format";
 import {
@@ -24,7 +25,7 @@ export default async function DashboardPage() {
 
   const events = me
     ? await prisma.event.findMany({
-        where: { OR: [{ ownerId: me.id }, { members: { some: { teamMemberId: me.id } } }] },
+        where: accessibleEvents(me),
         orderBy: { eventDate: "asc" },
         include: {
           owner: true,
@@ -35,7 +36,7 @@ export default async function DashboardPage() {
               records: { orderBy: { position: "asc" } },
             },
           },
-          scheduleItems: { select: { id: true } },
+          scheduleItems: { where: { aiDrafted: false }, select: { id: true } },
           registrants: { select: { amount: true, paymentStatus: true } },
           budgetLines: {
             select: {

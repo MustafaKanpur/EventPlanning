@@ -1,18 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import type { FieldDefinition, Prisma } from "@prisma/client";
 
-import { getCurrentTeamMember } from "@/lib/current-team-member";
+import { inEvent, requireAbility, requireEventAccess } from "@/lib/event-access";
+import { listLinkOptions } from "@/lib/link-targets";
 import { prisma } from "@/lib/prisma";
 import { linkTargetOf, valuesOf, type RecordValues } from "@/lib/records";
-
-async function requireMember() {
-  const me = await getCurrentTeamMember();
-  if (!me) redirect("/signin");
-  return me;
-}
 
 /** Composed screens can surface anywhere, so a write refreshes the whole event. */
 function revalidateEvent(eventId: string) {
@@ -45,19 +40,19 @@ function coerce(field: FieldDefinition, raw: FormDataEntryValue | null): unknown
  * Rewrites the record's links from its values. Relationship state lives in RecordLink;
  * values keep a copy only so the cell can render without a join. Doing both in one
  * transaction is what stops them drifting.
+ *
+ * Link ids arrive from the client, so each must be something this event's picker would
+ * offer; anything else (another event's block, a stranger) is treated as not found.
  */
 async function syncLinks(
   tx: Prisma.TransactionClient,
+  eventId: string,
   recordId: string,
   fields: FieldDefinition[],
   values: RecordValues,
 ) {
   const linkFields = fields.filter((f) => f.type === "LINK" || f.type === "PERSON");
   if (linkFields.length === 0) return;
-
-  await tx.recordLink.deleteMany({
-    where: { recordId, fieldKey: { in: linkFields.map((f) => f.key) } },
-  });
 
   const rows = linkFields.flatMap((field) => {
     const target = linkTargetOf(field);
@@ -69,19 +64,41 @@ async function syncLinks(
       .map((id) => ({ recordId, fieldKey: field.key, targetType: target, targetId: id }));
   });
 
+  // ponytail: loads each target's full option list per save; query by id if events get huge.
+  for (const target of Array.from(new Set(rows.map((r) => r.targetType)))) {
+    const allowed = new Set((await listLinkOptions(eventId, target)).map((o) => o.id));
+    if (rows.some((r) => r.targetType === target && !allowed.has(r.targetId))) notFound();
+  }
+
+  await tx.recordLink.deleteMany({
+    where: { recordId, fieldKey: { in: linkFields.map((f) => f.key) } },
+  });
   if (rows.length) await tx.recordLink.createMany({ data: rows, skipDuplicates: true });
 }
 
-async function loadScreen(screenId: string) {
-  return prisma.screenDefinition.findUniqueOrThrow({
-    where: { id: screenId },
+/** A screen of this event (not another event's, nor a template's), with its fields. */
+async function loadScreen(eventId: string, screenId: string) {
+  const screen = await prisma.screenDefinition.findFirst({
+    where: { id: screenId, eventId },
     include: { fields: { orderBy: { position: "asc" } } },
   });
+  if (!screen) notFound();
+  return screen;
+}
+
+/** A record on one of this event's screens. */
+async function loadRecord(eventId: string, recordId: string) {
+  const record = await prisma.screenRecord.findFirst({
+    where: { id: recordId, screen: { eventId } },
+    include: { screen: { include: { fields: { orderBy: { position: "asc" } } } } },
+  });
+  if (!record) notFound();
+  return record;
 }
 
 export async function createRecord(eventId: string, screenId: string, formData: FormData) {
-  await requireMember();
-  const screen = await loadScreen(screenId);
+  await requireEventAccess(eventId);
+  const screen = await loadScreen(eventId, screenId);
 
   const values: RecordValues = {};
   for (const field of screen.fields) {
@@ -98,7 +115,7 @@ export async function createRecord(eventId: string, screenId: string, formData: 
     const record = await tx.screenRecord.create({
       data: { screenId, values: values as Prisma.InputJsonValue, position: (last?.position ?? 0) + 1 },
     });
-    await syncLinks(tx, record.id, screen.fields, values);
+    await syncLinks(tx, eventId, record.id, screen.fields, values);
   });
 
   revalidateEvent(eventId);
@@ -114,12 +131,9 @@ export async function updateCell(
   fieldKey: string,
   formData: FormData,
 ) {
-  await requireMember();
+  await requireEventAccess(eventId);
 
-  const record = await prisma.screenRecord.findUniqueOrThrow({
-    where: { id: recordId },
-    include: { screen: { include: { fields: true } } },
-  });
+  const record = await loadRecord(eventId, recordId);
   const field = record.screen.fields.find((f) => f.key === fieldKey);
   if (!field) return;
 
@@ -130,7 +144,7 @@ export async function updateCell(
       where: { id: recordId },
       data: { values: values as Prisma.InputJsonValue },
     });
-    await syncLinks(tx, recordId, record.screen.fields, values);
+    await syncLinks(tx, eventId, recordId, record.screen.fields, values);
   });
 
   revalidateEvent(eventId);
@@ -143,9 +157,9 @@ export async function toggleRecordCheckbox(
   fieldKey: string,
   next: boolean,
 ) {
-  await requireMember();
+  await requireEventAccess(eventId);
 
-  const record = await prisma.screenRecord.findUniqueOrThrow({ where: { id: recordId } });
+  const record = await loadRecord(eventId, recordId);
   const values = { ...valuesOf(record), [fieldKey]: next };
 
   await prisma.screenRecord.update({
@@ -157,12 +171,9 @@ export async function toggleRecordCheckbox(
 }
 
 export async function updateRecord(eventId: string, recordId: string, formData: FormData) {
-  await requireMember();
+  await requireEventAccess(eventId);
 
-  const record = await prisma.screenRecord.findUniqueOrThrow({
-    where: { id: recordId },
-    include: { screen: { include: { fields: { orderBy: { position: "asc" } } } } },
-  });
+  const record = await loadRecord(eventId, recordId);
 
   const values: RecordValues = { ...valuesOf(record) };
   for (const field of record.screen.fields) {
@@ -177,15 +188,15 @@ export async function updateRecord(eventId: string, recordId: string, formData: 
       where: { id: recordId },
       data: { values: values as Prisma.InputJsonValue },
     });
-    await syncLinks(tx, recordId, record.screen.fields, values);
+    await syncLinks(tx, eventId, recordId, record.screen.fields, values);
   });
 
   revalidateEvent(eventId);
 }
 
 export async function deleteRecord(eventId: string, recordId: string) {
-  await requireMember();
-  await prisma.screenRecord.delete({ where: { id: recordId } }); // links cascade
+  await requireEventAccess(eventId);
+  await inEvent(prisma.screenRecord.delete({ where: { id: recordId, screen: { eventId } } })); // links cascade
   revalidateEvent(eventId);
 }
 
@@ -199,7 +210,10 @@ export async function addChecklistItemForBlock(
   scheduleItemId: string,
   formData: FormData,
 ) {
-  await requireMember();
+  await requireEventAccess(eventId);
+
+  const block = await prisma.scheduleItem.findFirst({ where: { id: scheduleItemId, eventId }, select: { id: true } });
+  if (!block) notFound();
 
   const screens = await prisma.screenDefinition.findMany({
     where: { eventId, viewType: "CHECKLIST" },
@@ -243,7 +257,7 @@ export async function addChecklistItemForBlock(
         position: (last?.position ?? 0) + 1,
       },
     });
-    await syncLinks(tx, record.id, target.fields, values);
+    await syncLinks(tx, eventId, record.id, target.fields, values);
   });
 
   revalidateEvent(eventId);
@@ -260,7 +274,9 @@ export async function addFieldToScreen(
   label: string,
   type: FieldDefinition["type"],
 ) {
-  await requireMember();
+  await requireAbility("BUILDER", eventId);
+
+  await loadScreen(eventId, screenId);
 
   const existing = await prisma.fieldDefinition.findMany({
     where: { screenId },
@@ -305,9 +321,9 @@ export async function setRecordGroup(
   fieldKey: string,
   value: string | null,
 ) {
-  await requireMember();
+  await requireEventAccess(eventId);
 
-  const record = await prisma.screenRecord.findUniqueOrThrow({ where: { id: recordId } });
+  const record = await loadRecord(eventId, recordId);
   const values = { ...valuesOf(record), [fieldKey]: value };
 
   await prisma.screenRecord.update({

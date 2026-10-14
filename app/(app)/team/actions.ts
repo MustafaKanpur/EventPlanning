@@ -2,12 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import type { TeamRole } from "@prisma/client";
+import type { Ability, TeamRole } from "@prisma/client";
 
 import { getCurrentTeamMember } from "@/lib/current-team-member";
 import { prisma } from "@/lib/prisma";
 
 const VALID_ROLES: TeamRole[] = ["ADMIN", "ORGANIZER", "STAFF"];
+const VALID_ABILITIES: Ability[] = ["BUILDER", "VOLUNTEER_ADMIN"];
 
 export async function createTeamMember(formData: FormData) {
   const me = await getCurrentTeamMember();
@@ -42,9 +43,18 @@ export async function updateTeamMember(teamMemberId: string, formData: FormData)
   const role = VALID_ROLES.includes(roleInput) ? roleInput : "STAFF";
 
   if (!name) throw new Error("Name is required.");
+  const abilities = formData
+    .getAll("abilities")
+    .filter((a): a is Ability => VALID_ABILITIES.includes(a as Ability));
 
   // Email stays fixed — it's how a signed-in user is matched to their roster entry.
-  await prisma.teamMember.update({ where: { id: teamMemberId }, data: { name, role } });
+  // The ticked boxes are the whole set, so abilities are replaced, not merged.
+  // ponytail: anyone signed in can change roles and abilities until account management lands.
+  await prisma.$transaction([
+    prisma.teamMember.update({ where: { id: teamMemberId }, data: { name, role } }),
+    prisma.teamMemberAbility.deleteMany({ where: { teamMemberId } }),
+    prisma.teamMemberAbility.createMany({ data: abilities.map((ability) => ({ teamMemberId, ability })) }),
+  ]);
 
   revalidatePath("/team");
 }

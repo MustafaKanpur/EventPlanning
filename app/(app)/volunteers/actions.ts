@@ -3,14 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { getCurrentTeamMember } from "@/lib/current-team-member";
+import { requireAbility } from "@/lib/event-access";
 import { prisma } from "@/lib/prisma";
 import { optionalDate, readVolunteerForm } from "@/lib/volunteers";
 
-async function requireStaff() {
-  const me = await getCurrentTeamMember();
-  if (!me) redirect("/signin");
-  return me;
+/** The org volunteer roster and hours are for volunteer admins (and org ADMINs). */
+function requireStaff() {
+  return requireAbility("VOLUNTEER_ADMIN");
 }
 
 /** Staff adding someone vouches for them, so they skip the pending queue. */

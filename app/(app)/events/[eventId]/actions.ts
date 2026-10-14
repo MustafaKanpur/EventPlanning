@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { getCurrentTeamMember } from "@/lib/current-team-member";
+import { requireEventAdmin } from "@/lib/event-access";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -11,23 +11,11 @@ import { prisma } from "@/lib/prisma";
  * resources, staffing and any screens placed on it. Screen *definitions* survive: they
  * live in the shared Builder library and may be in use by other events.
  *
- * Restricted to the event's owner or an ADMIN on it, since this can't be undone.
+ * Restricted to the event's owner, an ADMIN on it, or an org-wide ADMIN, since this
+ * can't be undone. Being staffed on the event isn't enough.
  */
 export async function deleteEvent(eventId: string) {
-  const me = await getCurrentTeamMember();
-  if (!me) redirect("/signin");
-
-  const event = await prisma.event.findFirst({
-    where: {
-      id: eventId,
-      OR: [
-        { ownerId: me.id },
-        { members: { some: { teamMemberId: me.id, role: "ADMIN" } } },
-      ],
-    },
-    select: { id: true },
-  });
-  if (!event) throw new Error("You don't have permission to delete this event.");
+  await requireEventAdmin(eventId);
 
   await prisma.event.delete({ where: { id: eventId } });
 

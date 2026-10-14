@@ -195,7 +195,7 @@ export function DraggableRow({
         {...attributes}
         type="button"
         aria-label={`Move ${title}`}
-        className="absolute left-0 top-0 flex h-11 w-5 cursor-grab items-center justify-center text-ink-muted hover:text-ink print:hidden"
+        className="absolute left-0 top-0 z-10 flex h-11 w-5 cursor-grab items-center justify-center text-ink-muted hover:text-ink print:hidden"
       >
         <svg width="8" height="14" viewBox="0 0 8 14" fill="currentColor" aria-hidden="true">
           <circle cx="2" cy="2" r="1.2" /><circle cx="6" cy="2" r="1.2" />
