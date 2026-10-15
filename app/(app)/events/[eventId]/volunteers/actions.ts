@@ -58,6 +58,14 @@ export async function addSignup(eventId: string, shiftId: string, formData: Form
   const volunteerId = String(formData.get("volunteerId") ?? "");
   if (!volunteerId) throw new Error("Pick a volunteer.");
 
+  // Demo events only take demo volunteers, and real events only real ones.
+  const event = await prisma.event.findUniqueOrThrow({ where: { id: eventId }, select: { isDemo: true } });
+  const fits = await prisma.volunteer.findFirst({
+    where: { id: volunteerId, isDemo: event.isDemo },
+    select: { id: true },
+  });
+  if (!fits) notFound();
+
   const shift = await prisma.shift.findFirst({
     where: { id: shiftId, eventId },
     include: { _count: { select: { signups: true } } },

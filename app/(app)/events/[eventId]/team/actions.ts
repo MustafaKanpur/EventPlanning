@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { notFound } from "next/navigation";
 import type { TeamRole } from "@prisma/client";
 
 import { inEvent, requireEventAdmin } from "@/lib/event-access";
@@ -20,6 +21,13 @@ export async function addEventMember(eventId: string, formData: FormData) {
   if (!teamMemberId) {
     throw new Error("Select a team member to add.");
   }
+  // Demo events only take demo people, and real events only real ones.
+  const event = await prisma.event.findUniqueOrThrow({ where: { id: eventId }, select: { isDemo: true } });
+  const fits = await prisma.teamMember.findFirst({
+    where: { id: teamMemberId, isDemo: event.isDemo },
+    select: { id: true },
+  });
+  if (!fits) notFound();
 
   await prisma.eventMember.upsert({
     where: { eventId_teamMemberId: { eventId, teamMemberId } },

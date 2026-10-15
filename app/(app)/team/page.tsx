@@ -1,4 +1,5 @@
 import { getCurrentTeamMember } from "@/lib/current-team-member";
+import { demoScope } from "@/lib/demo";
 import { prisma } from "@/lib/prisma";
 import { createTeamMember, updateTeamMember } from "./actions";
 import { TEAM_ROLE_STYLES } from "@/lib/status-styles";
@@ -7,7 +8,9 @@ export default async function TeamPage() {
   // Everyone can see the roster; only org ADMINs add people or change roles and abilities.
   const me = await getCurrentTeamMember();
   const isAdmin = me?.role === "ADMIN";
+  if (!me) return null;
   const teamMembers = await prisma.teamMember.findMany({
+    where: demoScope(me),
     orderBy: { name: "asc" },
     include: { abilities: { select: { ability: true } } },
   });

@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { getCurrentTeamMember } from "@/lib/current-team-member";
+import { templateScope } from "@/lib/demo";
 import { prisma } from "@/lib/prisma";
 import { ensureBuiltInTemplates } from "@/lib/templates";
 import { PageHeader } from "@/components/ui";
@@ -7,8 +9,11 @@ import { deleteTemplate } from "./actions";
 
 export default async function TemplatesPage() {
   await ensureBuiltInTemplates();
+  const me = await getCurrentTeamMember();
+  if (!me) return null;
 
   const templates = await prisma.template.findMany({
+    where: templateScope(me),
     include: {
       screens: {
         select: { name: true, viewType: true, _count: { select: { fields: true } } },

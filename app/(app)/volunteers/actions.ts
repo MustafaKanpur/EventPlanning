@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { demoScope, requireVolunteerInScope } from "@/lib/demo";
 import { requireAbility } from "@/lib/event-access";
 import { prisma } from "@/lib/prisma";
 import { optionalDate, readVolunteerForm } from "@/lib/volunteers";
@@ -14,21 +15,21 @@ function requireStaff() {
 
 /** Staff adding someone vouches for them, so they skip the pending queue. */
 export async function addVolunteer(formData: FormData) {
-  await requireStaff();
+  const me = await requireStaff();
   const data = readVolunteerForm(formData);
   if (!data.name || !data.email) throw new Error("Name and email are required.");
 
-  const existing = await prisma.volunteer.findUnique({ where: { email: data.email } });
+  const existing = await prisma.volunteer.findFirst({ where: { email: data.email, ...demoScope(me) } });
   if (existing) redirect(`/volunteers/${existing.id}`);
 
   const volunteer = await prisma.volunteer.create({
-    data: { ...data, status: "APPROVED", joinedAt: optionalDate(formData.get("joinedAt")) ?? undefined },
+    data: { ...data, isDemo: me.isDemo, status: "APPROVED", joinedAt: optionalDate(formData.get("joinedAt")) ?? undefined },
   });
   redirect(`/volunteers/${volunteer.id}`);
 }
 
 export async function updateVolunteer(volunteerId: string, formData: FormData) {
-  await requireStaff();
+  await requireVolunteerInScope(await requireStaff(), volunteerId);
   // Email is the public forms' match key, so it isn't editable here.
   const data = readVolunteerForm(formData);
   if (!data.name) throw new Error("Name is required.");
@@ -42,7 +43,7 @@ export async function updateVolunteer(volunteerId: string, formData: FormData) {
 }
 
 export async function approveVolunteer(volunteerId: string) {
-  await requireStaff();
+  await requireVolunteerInScope(await requireStaff(), volunteerId);
   await prisma.volunteer.update({ where: { id: volunteerId }, data: { status: "APPROVED" } });
   revalidatePath("/volunteers");
   revalidatePath(`/volunteers/${volunteerId}`);
@@ -58,7 +59,7 @@ function readHours(formData: FormData) {
 
 /** Hours can only be logged against an event the volunteer actually signed up for. */
 export async function addHours(volunteerId: string, formData: FormData) {
-  await requireStaff();
+  await requireVolunteerInScope(await requireStaff(), volunteerId);
   const eventId = String(formData.get("eventId") ?? "");
   const signedUp = await prisma.shiftSignup.findFirst({
     where: { volunteerId, shift: { eventId } },
@@ -72,7 +73,7 @@ export async function addHours(volunteerId: string, formData: FormData) {
 
 /** Any edit needs approving again, so a changed number never counts unreviewed. */
 export async function updateHours(volunteerId: string, entryId: string, formData: FormData) {
-  await requireStaff();
+  await requireVolunteerInScope(await requireStaff(), volunteerId);
   await prisma.hoursEntry.update({
     where: { id: entryId, volunteerId },
     data: { ...readHours(formData), status: "PENDING" },
@@ -82,7 +83,7 @@ export async function updateHours(volunteerId: string, entryId: string, formData
 }
 
 export async function approveHours(volunteerId: string, entryId: string) {
-  await requireStaff();
+  await requireVolunteerInScope(await requireStaff(), volunteerId);
   await prisma.hoursEntry.update({ where: { id: entryId, volunteerId }, data: { status: "APPROVED" } });
   revalidatePath(`/volunteers/${volunteerId}`);
   revalidatePath("/volunteers");
@@ -90,14 +91,14 @@ export async function approveHours(volunteerId: string, entryId: string) {
 
 /** Takes their shift sign-ups and hours with them (cascade). */
 export async function deleteVolunteer(volunteerId: string) {
-  await requireStaff();
+  await requireVolunteerInScope(await requireStaff(), volunteerId);
   await prisma.volunteer.delete({ where: { id: volunteerId } });
   revalidatePath("/volunteers");
   redirect("/volunteers");
 }
 
 export async function deleteHours(volunteerId: string, entryId: string) {
-  await requireStaff();
+  await requireVolunteerInScope(await requireStaff(), volunteerId);
   await prisma.hoursEntry.delete({ where: { id: entryId, volunteerId } });
   revalidatePath(`/volunteers/${volunteerId}`);
   revalidatePath("/volunteers");

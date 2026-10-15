@@ -14,6 +14,7 @@ const input =
 
 export default async function EventVolunteersPage({ params }: { params: { eventId: string } }) {
   const { eventId } = params;
+  const eventIsDemo = (await prisma.event.findUnique({ where: { id: eventId }, select: { isDemo: true } }))?.isDemo ?? false;
   const [shifts, volunteers] = await Promise.all([
     prisma.shift.findMany({
     where: { eventId },
@@ -25,7 +26,12 @@ export default async function EventVolunteersPage({ params }: { params: { eventI
     },
     orderBy: { startTime: "asc" },
     }),
-    prisma.volunteer.findMany({ select: { id: true, name: true }, orderBy: { name: "asc" } }),
+    // Demo events only take demo volunteers, and real events only real ones.
+    prisma.volunteer.findMany({
+      where: { isDemo: eventIsDemo },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
   ]);
 
   const base = process.env.NEXT_PUBLIC_SITE_URL ?? process.env.NEXTAUTH_URL ?? "";

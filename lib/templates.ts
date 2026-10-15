@@ -307,6 +307,7 @@ export async function saveEventAsTemplate(
   name: string,
   description: string | null,
   createdById: string | null,
+  isDemo = false,
 ): Promise<string> {
   return prisma.$transaction(async (tx) => {
     const screens = await tx.screenDefinition.findMany({
@@ -316,7 +317,7 @@ export async function saveEventAsTemplate(
     });
 
     const template = await tx.template.create({
-      data: { name, description, isBuiltIn: false, createdById },
+      data: { name, description, isBuiltIn: false, createdById, isDemo },
     });
 
     for (const screen of screens) {

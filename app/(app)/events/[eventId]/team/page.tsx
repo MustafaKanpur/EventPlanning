@@ -18,6 +18,7 @@ function ownership(taskCount: number, blockCount: number): string {
 export default async function PeoplePage({ params }: { params: { eventId: string } }) {
   const { eventId } = params;
 
+  const eventIsDemo = (await prisma.event.findUnique({ where: { id: eventId }, select: { isDemo: true } }))?.isDemo ?? false;
   const [event, allTeamMembers, checklists] = await Promise.all([
     prisma.event.findUnique({
       where: { id: eventId },
@@ -26,7 +27,11 @@ export default async function PeoplePage({ params }: { params: { eventId: string
         members: { include: { teamMember: true }, orderBy: { teamMember: { name: "asc" } } },
       },
     }),
-    prisma.teamMember.findMany({ orderBy: { name: "asc" } }),
+    // Demo events only take demo people, and real events only real ones.
+    prisma.teamMember.findMany({
+      where: { isDemo: eventIsDemo },
+      orderBy: { name: "asc" },
+    }),
     getChecklistScreens(eventId),
   ]);
 

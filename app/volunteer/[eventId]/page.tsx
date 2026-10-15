@@ -13,8 +13,9 @@ export default async function EventVolunteerSignupPage({
   params: { eventId: string };
   searchParams: { success?: string; error?: string };
 }) {
+  // Demo events are never open to the public.
   const event = await prisma.event.findUnique({
-    where: { id: params.eventId },
+    where: { id: params.eventId, isDemo: false },
     include: {
       shifts: { include: { _count: { select: { signups: true } } }, orderBy: { startTime: "asc" } },
     },

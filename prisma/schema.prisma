@@ -17,6 +17,9 @@ datasource db {
 
 model User {
   id            String        @id @default(cuid())
+  /// Created by or for a recruiter demo visit. Only demo accounts and org ADMINs see it,
+  /// and it's deleted 6 hours after creation (lib/demo.ts).
+  isDemo Boolean @default(false)
   name          String?
   email         String        @unique
   emailVerified DateTime?
@@ -92,6 +95,9 @@ enum TeamRole {
 /// running the same event every year, and the onboarding path for new ones.
 model Template {
   id          String  @id @default(cuid())
+  /// Created by or for a recruiter demo visit. Only demo accounts and org ADMINs see it,
+  /// and it's deleted 6 hours after creation (lib/demo.ts).
+  isDemo Boolean @default(false)
   name        String
   description String?
   /// Shipped with the app. Seeded on demand and never deleted by a user.
@@ -147,6 +153,9 @@ enum LinkTarget {
 
 model TeamMember {
   id     String   @id @default(cuid())
+  /// Created by or for a recruiter demo visit. Only demo accounts and org ADMINs see it,
+  /// and it's deleted 6 hours after creation (lib/demo.ts).
+  isDemo Boolean @default(false)
   name   String
   email  String   @unique
   /// Tap-to-call on the day-of view.
@@ -185,6 +194,9 @@ model TeamMemberAbility {
 
 model Event {
   id              String      @id @default(cuid())
+  /// Created by or for a recruiter demo visit. Only demo accounts and org ADMINs see it,
+  /// and it's deleted 6 hours after creation (lib/demo.ts).
+  isDemo Boolean @default(false)
   name            String
   eventDate       DateTime
   status          EventStatus @default(DRAFT)
@@ -476,6 +488,9 @@ enum ApprovalStatus {
 
 model Volunteer {
   id        String         @id @default(cuid())
+  /// Created by or for a recruiter demo visit. Only demo accounts and org ADMINs see it,
+  /// and it's deleted 6 hours after creation (lib/demo.ts).
+  isDemo Boolean @default(false)
   name      String
   email     String         @unique
   phone     String?

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { getCurrentTeamMember } from "@/lib/current-team-member";
+import { demoScope } from "@/lib/demo";
 import { prisma } from "@/lib/prisma";
 import { formatShortDate, formatTime } from "@/lib/format";
 import { dateInputValue, formatDay } from "@/lib/volunteers";
@@ -22,8 +24,10 @@ const button =
   "rounded-[3px] bg-accent px-3 py-1.5 text-xs font-medium text-panel transition hover:opacity-90";
 
 export default async function VolunteerProfilePage({ params }: { params: { volunteerId: string } }) {
-  const volunteer = await prisma.volunteer.findUnique({
-    where: { id: params.volunteerId },
+  const me = await getCurrentTeamMember();
+  if (!me) notFound();
+  const volunteer = await prisma.volunteer.findFirst({
+    where: { id: params.volunteerId, ...demoScope(me) },
     include: {
       signups: {
         include: { shift: { include: { event: { select: { id: true, name: true } } } } },

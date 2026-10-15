@@ -45,7 +45,7 @@ export async function signUpForShift(eventId: string, formData: FormData) {
     blocker = await prisma.$transaction(
       async (tx) => {
         const shift = await tx.shift.findFirst({
-          where: { id: shiftId, eventId, event: { status: { not: "CANCELLED" } } },
+          where: { id: shiftId, eventId, event: { status: { not: "CANCELLED" }, isDemo: false } },
           include: { _count: { select: { signups: true } } },
         });
         if (!shift) return "That shift isn't open for sign-ups.";

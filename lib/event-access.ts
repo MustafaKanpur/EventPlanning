@@ -11,9 +11,10 @@ import { prisma } from "@/lib/prisma";
  * (who can see and edit every event). Pages and server actions both read it from here,
  * so what you can see and what you can change can't drift apart.
  */
-export function accessibleEvents(me: Pick<TeamMember, "id" | "role">): Prisma.EventWhereInput {
+export function accessibleEvents(me: Pick<TeamMember, "id" | "role" | "isDemo">): Prisma.EventWhereInput {
   if (me.role === "ADMIN") return {};
-  return { OR: [{ ownerId: me.id }, { members: { some: { teamMemberId: me.id } } }] };
+  // Demo accounts only ever reach demo events, and real accounts only real ones.
+  return { isDemo: me.isDemo, OR: [{ ownerId: me.id }, { members: { some: { teamMemberId: me.id } } }] };
 }
 
 /**

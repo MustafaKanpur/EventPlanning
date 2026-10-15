@@ -231,8 +231,15 @@ export async function draftScheduleItems(eventId: string, rawPrompt: string): Pr
   // written before the model call so requests running at the same time count too.
   // ponytail: count-then-insert isn't atomic, so a burst can land a draft or two over 20.
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  // Every demo click is a new account, so demo visitors share one allowance between them.
+  // ponytail: demo usage rows go when their 6-hour-old accounts are cleaned up, so the
+  // shared cap is really "per ~6 hours"; keep usage rows apart from users if that matters.
   const used = await prisma.agentAction.count({
-    where: { userId: me.userId, feature: DRAFT_FEATURE, createdAt: { gte: since } },
+    where: {
+      ...(me.isDemo ? { user: { isDemo: true } } : { userId: me.userId }),
+      feature: DRAFT_FEATURE,
+      createdAt: { gte: since },
+    },
   });
   if (used >= DRAFTS_PER_DAY) {
     return { error: `You've used all ${DRAFTS_PER_DAY} AI drafts for today. Try again tomorrow.` };

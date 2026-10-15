@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { getCurrentTeamMember } from "@/lib/current-team-member";
+import { demoScope } from "@/lib/demo";
 import { prisma } from "@/lib/prisma";
 import { dateInputValue, formatDay } from "@/lib/volunteers";
 import { StatusDot } from "@/components/ui";
@@ -11,15 +13,18 @@ const button =
   "rounded-[3px] bg-accent px-3 py-1.5 text-xs font-medium text-panel transition hover:opacity-90";
 
 export default async function VolunteersPage() {
+  // Demo visitors see only their fake volunteers; real staff never see those.
+  const me = await getCurrentTeamMember();
+  if (!me) return null;
   const [volunteers, approvedHours, pendingHours] = await Promise.all([
-    prisma.volunteer.findMany({ orderBy: [{ status: "asc" }, { name: "asc" }] }),
+    prisma.volunteer.findMany({ where: demoScope(me), orderBy: [{ status: "asc" }, { name: "asc" }] }),
     prisma.hoursEntry.groupBy({
       by: ["volunteerId"],
       where: { status: "APPROVED" },
       _sum: { hours: true },
     }),
     prisma.hoursEntry.findMany({
-      where: { status: "PENDING" },
+      where: { status: "PENDING", volunteer: demoScope(me) },
       include: { volunteer: { select: { name: true } }, event: { select: { name: true } } },
       orderBy: { createdAt: "asc" },
     }),

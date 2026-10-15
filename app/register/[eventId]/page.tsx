@@ -12,7 +12,8 @@ export default async function PublicRegistrationPage({
   params: { eventId: string };
   searchParams: { success?: string };
 }) {
-  const event = await prisma.event.findUnique({ where: { id: params.eventId } });
+  // Demo events are never open to the public.
+  const event = await prisma.event.findUnique({ where: { id: params.eventId, isDemo: false } });
   if (!event) notFound();
 
   const submitted = searchParams.success === "1";

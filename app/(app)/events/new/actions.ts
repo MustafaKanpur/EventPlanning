@@ -1,8 +1,9 @@
 "use server";
 
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { getCurrentTeamMember } from "@/lib/current-team-member";
+import { templateScope } from "@/lib/demo";
 import { prisma } from "@/lib/prisma";
 import { seedDefaultScreens } from "@/lib/default-screens";
 import { timeValueToMinutes } from "@/lib/run-of-show";
@@ -22,6 +23,9 @@ export async function createEvent(formData: FormData) {
   if (!name || !eventDate) {
     throw new Error("Name and date are required.");
   }
+  if (templateId && !(await prisma.template.findFirst({ where: { id: templateId, ...templateScope(me) } }))) {
+    notFound();
+  }
 
   // A new event is never an empty shell: its default composed screens are created in
   // the same transaction, so the tab bar is populated the moment it exists.
@@ -36,6 +40,7 @@ export async function createEvent(formData: FormData) {
         // Where the run of show opens; blank keeps the 09:00 default.
         startMinutes: timeValueToMinutes(String(formData.get("startTime") ?? "")),
         ownerId: me.id,
+        isDemo: me.isDemo,
       },
     });
     // A template supplies its own screens (defaults included). "Start blank" still gets

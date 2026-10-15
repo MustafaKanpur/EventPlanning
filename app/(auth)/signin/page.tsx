@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { signInWithPassword } from "./actions";
 import { AuthForm } from "./auth-form";
-import { enterWithoutSigningIn } from "./guest-actions";
+import { enterDemo } from "./demo-actions";
 
 // Google and magic-link sign-in are still configured in lib/auth.ts, just not offered
 // here while native accounts come first.
@@ -34,18 +34,17 @@ export default function SignInPage({ searchParams }: { searchParams: { verified?
         </Link>
       </p>
 
-      {/* Temporary: stays until the recruiter demo entrance replaces it. */}
       <div className="border-t border-rule pt-5">
-        <form action={enterWithoutSigningIn}>
+        <form action={enterDemo}>
           <button
             type="submit"
             className="h-11 w-full border border-rule bg-panel px-4 text-ui text-ink transition-colors hover:bg-panel-alt"
           >
-            Continue without signing in →
+            Try the demo →
           </button>
         </form>
         <p className="mt-2 text-center text-meta text-ink-muted">
-          Temporary access while sign-in is being finished. Anyone with this link gets in.
+          Your own sample event to explore and edit. It&apos;s cleared after 6 hours.
         </p>
       </div>
     </div>

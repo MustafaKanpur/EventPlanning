@@ -1,9 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { getCurrentTeamMember } from "@/lib/current-team-member";
+import { templateScope } from "@/lib/demo";
 import { requireEventAccess } from "@/lib/event-access";
 import { prisma } from "@/lib/prisma";
 import { saveEventAsTemplate } from "@/lib/templates";
@@ -20,7 +21,7 @@ export async function createTemplateFromEvent(eventId: string, formData: FormDat
   const name = String(formData.get("name") ?? "").trim() || `${event.name} template`;
   const description = String(formData.get("description") ?? "").trim() || null;
 
-  await saveEventAsTemplate(eventId, name, description, me.id);
+  await saveEventAsTemplate(eventId, name, description, me.id, me.isDemo);
 
   revalidatePath("/templates");
   redirect("/templates");
@@ -32,10 +33,12 @@ export async function deleteTemplate(templateId: string) {
 
   // Built-ins are re-seeded on demand, so deleting one would just reappear; block it
   // rather than let the button lie.
-  const template = await prisma.template.findUniqueOrThrow({
-    where: { id: templateId },
+  // Demo visitors can only reach demo templates, so they can never delete a real one.
+  const template = await prisma.template.findFirst({
+    where: { id: templateId, ...templateScope(me) },
     select: { isBuiltIn: true },
   });
+  if (!template) notFound();
   if (template.isBuiltIn) return;
 
   await prisma.template.delete({ where: { id: templateId } }); // screens cascade

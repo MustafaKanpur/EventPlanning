@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { getCurrentTeamMember } from "@/lib/current-team-member";
+import { templateScope } from "@/lib/demo";
 import { prisma } from "@/lib/prisma";
 import { ensureBuiltInTemplates } from "@/lib/templates";
 import { PageHeader } from "@/components/ui";
@@ -16,7 +18,10 @@ export default async function NewEventPage({
   searchParams: { template?: string };
 }) {
   await ensureBuiltInTemplates();
+  const me = await getCurrentTeamMember();
+  if (!me) return null;
   const templates = await prisma.template.findMany({
+    where: templateScope(me),
     include: { _count: { select: { screens: true } } },
     orderBy: [{ isBuiltIn: "desc" }, { name: "asc" }],
   });

@@ -23,7 +23,7 @@ export async function registerForEvent(eventId: string, formData: FormData) {
     throw new Error("Name and email are required.");
   }
 
-  const event = await prisma.event.findUnique({ where: { id: eventId } });
+  const event = await prisma.event.findUnique({ where: { id: eventId, isDemo: false } });
   if (!event || event.status === "CANCELLED") {
     throw new Error("This event is not accepting registrations.");
   }
