@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { getCurrentTeamMember } from "@/lib/current-team-member";
 import { demoScope } from "@/lib/demo";
 import { prisma } from "@/lib/prisma";
+import { NamesOnly } from "@/components/names-only";
+import { canSeePersonal } from "@/lib/event-access";
 import { formatShortDate, formatTime } from "@/lib/format";
 import { dateInputValue, formatDay } from "@/lib/volunteers";
 import { StatusDot } from "@/components/ui";
@@ -26,6 +28,11 @@ const button =
 export default async function VolunteerProfilePage({ params }: { params: { volunteerId: string } }) {
   const me = await getCurrentTeamMember();
   if (!me) notFound();
+  if (!(await canSeePersonal())) {
+    const person = await prisma.volunteer.findFirst({ where: { id: params.volunteerId, ...demoScope(me) }, select: { name: true } });
+    if (!person) notFound();
+    return <NamesOnly heading="Volunteer" names={[person.name]} />;
+  }
   const volunteer = await prisma.volunteer.findFirst({
     where: { id: params.volunteerId, ...demoScope(me) },
     include: {

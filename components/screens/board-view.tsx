@@ -15,6 +15,7 @@ import type { FieldDefinition, Prisma, ScreenRecord } from "@prisma/client";
 import type { SelectOption } from "@/lib/screen-templates";
 import { OPTION_COLOR_CLASSES } from "@/lib/screen-templates";
 import { readText, valuesOf } from "@/lib/records";
+import { useReadOnly } from "@/components/read-only";
 import { setRecordGroup } from "@/app/(app)/events/[eventId]/screens/actions";
 
 type Props = {
@@ -35,7 +36,9 @@ export function BoardView({ eventId, records, groupField, choices, cardFields }:
   useEffect(() => setItems(records), [records]);
 
   const [, startTransition] = useTransition();
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
+  const pointer = useSensor(PointerSensor, { activationConstraint: { distance: 4 } });
+  // Read-only viewers get no sensors, so cards can't be dragged between columns.
+  const sensors = useSensors(...(useReadOnly() ? [] : [pointer]));
 
   const columns: { value: string | null; label: string; color: string }[] = [
     ...choices.map((c) => ({ value: c.value, label: c.label, color: c.color })),

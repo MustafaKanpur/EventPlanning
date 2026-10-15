@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 
 import { getCurrentTeamMember } from "@/lib/current-team-member";
 import { templateScope } from "@/lib/demo";
+import { requireNotReadOnly } from "@/lib/event-access";
 import { prisma } from "@/lib/prisma";
 import { seedDefaultScreens } from "@/lib/default-screens";
 import { timeValueToMinutes } from "@/lib/run-of-show";
@@ -12,6 +13,7 @@ import { applyTemplateToEvent } from "@/lib/templates";
 export async function createEvent(formData: FormData) {
   const me = await getCurrentTeamMember();
   if (!me) redirect("/signin");
+  await requireNotReadOnly(me);
 
   const name = String(formData.get("name") ?? "").trim();
   const eventDate = String(formData.get("eventDate") ?? "");

@@ -30,6 +30,7 @@ import {
   updateUnplacedItem,
 } from "./actions";
 import { addChecklistItemForBlock, toggleRecordCheckbox } from "../screens/actions";
+import { viewerIsReadOnly } from "@/lib/event-access";
 import {
   checklistShape,
   daysOverdue,
@@ -63,6 +64,8 @@ export default async function RunOfShowPage({
   params: { eventId: string };
   searchParams: { print?: string };
 }) {
+  // Read-only viewers get the schedule without any of its edit controls.
+  const readOnly = await viewerIsReadOnly();
   const { eventId } = params;
 
   const [event, items, budgetLines] = await Promise.all([
@@ -202,6 +205,7 @@ export default async function RunOfShowPage({
                 {formatDuration(scheduledMinutes)} scheduled
                 {unaccountedMinutes > 0 && ` · ${formatDuration(unaccountedMinutes)} unaccounted`}
               </p>
+              {!readOnly && (
               <form action={setStart} className="mt-2 flex items-center gap-2 print:hidden">
                 <label htmlFor="day-start" className="text-caption text-ink-muted">
                   Day starts
@@ -217,6 +221,7 @@ export default async function RunOfShowPage({
                   Set
                 </button>
               </form>
+              )}
             </div>
             <div className="flex items-center gap-5 print:hidden">
               <Link href={`/events/${eventId}/tasks`} className={textButton}>
@@ -225,6 +230,7 @@ export default async function RunOfShowPage({
               <Link href={`/events/${eventId}/day`} className={textButton}>
                 Day view
               </Link>
+              {!readOnly && (
               <details className="relative">
                 <summary className={`cursor-pointer list-none ${textButton}`}>+ Add block</summary>
                 <form
@@ -273,6 +279,7 @@ export default async function RunOfShowPage({
                   </button>
                 </form>
               </details>
+              )}
             </div>
           </div>
 
@@ -336,6 +343,7 @@ export default async function RunOfShowPage({
                             block={row.block}
                             teamMembers={teamMembers}
                             overlaps={overlapsWith.get(row.block.id)}
+                            readOnly={readOnly}
                           />
                         )}
                       </DraggableRow>
@@ -403,7 +411,7 @@ export default async function RunOfShowPage({
             </div>
           </section>
 
-          <DraftWithAi eventId={eventId} />
+          {!readOnly && <DraftWithAi eventId={eventId} />}
 
           <section>
             <h2 className="mb-2 text-micro uppercase text-ink-muted">Not yet placed</h2>
@@ -423,7 +431,7 @@ export default async function RunOfShowPage({
                     aiDrafted={itemById.get(block.id)?.aiDrafted}
                     aiHint={aiHint(block.id)}
                     editor={
-                      <UnplacedEditor
+                      readOnly ? null : <UnplacedEditor
                         eventId={eventId}
                         block={block}
                         durationMinutes={itemById.get(block.id)?.durationMinutes ?? null}
@@ -480,12 +488,14 @@ function BlockRow({
   block,
   teamMembers,
   overlaps,
+  readOnly,
 }: {
   eventId: string;
   block: PlacedBlock;
   teamMembers: { id: string; name: string }[];
   /** Titles of blocks this one clashes with. */
   overlaps?: string[];
+  readOnly: boolean;
 }) {
   const addTask = addChecklistItemForBlock.bind(null, eventId, block.id);
   const editBlock = updateScheduleItem.bind(null, eventId, block.id);
@@ -516,6 +526,7 @@ function BlockRow({
             {block.title}
             {block.location && <span className="text-ink-muted"> · {block.location}</span>}
           </p>
+          {!readOnly && (
           <details className="relative shrink-0 print:hidden">
             <summary className="cursor-pointer list-none text-meta text-ink-muted hover:text-ink">
               Edit
@@ -571,6 +582,7 @@ function BlockRow({
               </div>
             </div>
           </details>
+          )}
         </div>
 
         {overlaps && (
@@ -594,6 +606,7 @@ function BlockRow({
                   <form action={toggle} className="flex items-center">
                     <button
                       type="submit"
+                      disabled={readOnly}
                       aria-label={
                         task.done ? `Mark "${task.title}" not done` : `Mark "${task.title}" done`
                       }
@@ -655,6 +668,7 @@ function BlockRow({
           </ul>
         )}
 
+        {!readOnly && (
         <details className="mt-2 print:hidden">
           <summary className="cursor-pointer list-none text-meta text-ink-muted hover:text-ink">
             + Add task
@@ -683,6 +697,7 @@ function BlockRow({
             </button>
           </form>
         </details>
+        )}
 
         {/* Non-checklist records attached to this block. Checklists are already nested
             above as tasks, so they're excluded rather than listed twice. */}

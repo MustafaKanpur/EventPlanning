@@ -3,6 +3,8 @@ import Link from "next/link";
 import { getCurrentTeamMember } from "@/lib/current-team-member";
 import { demoScope } from "@/lib/demo";
 import { prisma } from "@/lib/prisma";
+import { NamesOnly } from "@/components/names-only";
+import { canSeePersonal } from "@/lib/event-access";
 import { dateInputValue, formatDay } from "@/lib/volunteers";
 import { StatusDot } from "@/components/ui";
 import { VolunteerFields } from "@/components/volunteer-fields";
@@ -16,6 +18,10 @@ export default async function VolunteersPage() {
   // Demo visitors see only their fake volunteers; real staff never see those.
   const me = await getCurrentTeamMember();
   if (!me) return null;
+  if (!(await canSeePersonal())) {
+    const people = await prisma.volunteer.findMany({ where: demoScope(me), select: { name: true }, orderBy: { name: "asc" } });
+    return <NamesOnly heading="Volunteers" names={people.map((p) => p.name)} />;
+  }
   const [volunteers, approvedHours, pendingHours] = await Promise.all([
     prisma.volunteer.findMany({ where: demoScope(me), orderBy: [{ status: "asc" }, { name: "asc" }] }),
     prisma.hoursEntry.groupBy({

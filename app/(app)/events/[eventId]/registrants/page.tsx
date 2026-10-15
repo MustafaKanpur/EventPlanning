@@ -1,6 +1,8 @@
 import Link from "next/link";
 
 import { prisma } from "@/lib/prisma";
+import { NamesOnly } from "@/components/names-only";
+import { canSeePersonal } from "@/lib/event-access";
 import { formatMoney } from "@/lib/format";
 import { MicroBar, Money, StatusDot, toneForStatus } from "@/components/ui";
 import {
@@ -30,6 +32,12 @@ export default async function RegistrationPage({
   searchParams: Record<string, string | string[] | undefined>;
 }) {
   const { eventId } = params;
+
+  // Read-only accounts get names only; nothing else is even fetched.
+  if (!(await canSeePersonal())) {
+    const people = await prisma.registrant.findMany({ where: { eventId }, select: { name: true }, orderBy: { name: "asc" } });
+    return <NamesOnly heading="Registrants" names={people.map((p) => p.name)} />;
+  }
 
   const [event, registrants, budgetLines, form] = await Promise.all([
     prisma.event.findUnique({

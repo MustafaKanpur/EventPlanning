@@ -1,5 +1,6 @@
 import { getCurrentTeamMember } from "@/lib/current-team-member";
 import { demoScope } from "@/lib/demo";
+import { canSeePersonal } from "@/lib/event-access";
 import { prisma } from "@/lib/prisma";
 import { createTeamMember, updateTeamMember } from "./actions";
 import { TEAM_ROLE_STYLES } from "@/lib/status-styles";
@@ -9,6 +10,7 @@ export default async function TeamPage() {
   const me = await getCurrentTeamMember();
   const isAdmin = me?.role === "ADMIN";
   if (!me) return null;
+  const showPersonal = await canSeePersonal();
   const teamMembers = await prisma.teamMember.findMany({
     where: demoScope(me),
     orderBy: { name: "asc" },
@@ -60,6 +62,7 @@ export default async function TeamPage() {
               defaultValue="STAFF"
               className="w-full rounded-[3px] border border-rule px-3 py-2 text-sm focus:border-accent focus:outline-none "
             >
+              <option value="READ_ONLY">Read-only</option>
               <option value="STAFF">Staff</option>
               <option value="ORGANIZER">Organizer</option>
               <option value="ADMIN">Admin</option>
@@ -89,10 +92,12 @@ export default async function TeamPage() {
               <div key={member.id} className="flex items-start justify-between gap-3 px-6 py-4">
                 <div>
                   <p className="font-medium text-ink">{member.name}</p>
-                  <p className="text-sm text-ink-muted">
-                    {member.email}
-                    {!member.userId && " · hasn't signed in yet"}
-                  </p>
+                  {showPersonal && (
+                    <p className="text-sm text-ink-muted">
+                      {member.email}
+                      {!member.userId && " · hasn't signed in yet"}
+                    </p>
+                  )}
                 </div>
                 <div className="flex items-center gap-3">
                   <span
@@ -125,6 +130,7 @@ export default async function TeamPage() {
                           defaultValue={member.role}
                           className="w-full rounded-[3px] border border-rule px-3 py-2 text-sm focus:border-accent focus:outline-none "
                         >
+                          <option value="READ_ONLY">Read-only</option>
                           <option value="STAFF">Staff</option>
                           <option value="ORGANIZER">Organizer</option>
                           <option value="ADMIN">Admin</option>

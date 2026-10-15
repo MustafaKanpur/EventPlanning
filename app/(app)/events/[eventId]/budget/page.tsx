@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { viewerIsReadOnly } from "@/lib/event-access";
 import { prisma } from "@/lib/prisma";
 import { formatMoney } from "@/lib/format";
 import { budgetTotals, toLedger } from "@/lib/budget";
@@ -37,6 +38,9 @@ const COLUMNS = [
 export default async function BudgetPage({ params }: { params: { eventId: string } }) {
   const { eventId } = params;
 
+  // Read-only accounts get no edit controls and see vendor names only.
+  const readOnly = await viewerIsReadOnly();
+  const showPersonal = !readOnly;
   const [event, lines, paidRegistrants, rollupsByLine] = await Promise.all([
     prisma.event.findUnique({ where: { id: eventId }, select: { fundraisingGoal: true } }),
     prisma.budgetLine.findMany({
@@ -97,6 +101,7 @@ export default async function BudgetPage({ params }: { params: { eventId: string
       <section>
         <div className="flex flex-wrap items-baseline justify-between gap-3 pb-3">
           <h2 className="font-display text-[22px] font-normal leading-none text-ink">Ledger</h2>
+          {!readOnly && (
           <details className="relative">
             <summary className={`cursor-pointer list-none ${textButton}`}>+ Add category</summary>
             <form
@@ -132,6 +137,7 @@ export default async function BudgetPage({ params }: { params: { eventId: string
               </button>
             </form>
           </details>
+          )}
         </div>
 
         <div className="overflow-x-auto border border-rule bg-panel">
@@ -165,6 +171,8 @@ export default async function BudgetPage({ params }: { params: { eventId: string
                     eventId={eventId}
                     row={row}
                     source={lineById.get(row.id)!}
+                    showPersonal={showPersonal}
+                    readOnly={readOnly}
                   />
                 ))
               )}
@@ -222,10 +230,15 @@ function LedgerRow({
   eventId,
   row,
   source,
+  showPersonal,
+  readOnly,
 }: {
   eventId: string;
   row: ReturnType<typeof toLedger>[number];
   source: SourceLine;
+  /** False for read-only accounts: vendor names only. */
+  showPersonal: boolean;
+  readOnly: boolean;
 }) {
   const editLine = updateBudgetLine.bind(null, eventId, row.id);
   const removeLine = deleteBudgetLine.bind(null, eventId, row.id);
@@ -310,6 +323,7 @@ function LedgerRow({
                               {item.notes}
                             </p>
                           )}
+                          {!readOnly && (
                           <details className="mt-1">
                             <summary className="cursor-pointer list-none text-meta text-ink-muted hover:text-ink">
                               Edit
@@ -354,12 +368,14 @@ function LedgerRow({
                               </button>
                             </form>
                           </details>
+                          )}
                         </li>
                       );
                     })}
                   </ul>
                 )}
 
+                {!readOnly && (
                 <details className="mt-2">
                   <summary className="cursor-pointer list-none text-meta text-ink-muted hover:text-ink">
                     + Add line item
@@ -394,6 +410,7 @@ function LedgerRow({
                     </button>
                   </form>
                 </details>
+                )}
               </div>
 
               <div>
@@ -409,7 +426,7 @@ function LedgerRow({
                         <li key={vendor.id} className="py-2 text-[13px]">
                           <div className="flex items-baseline justify-between gap-2">
                             <span className="text-ink">{vendor.name}</span>
-                            {vendor.contactEmail && (
+                            {showPersonal && vendor.contactEmail && (
                               <a
                                 href={`mailto:${vendor.contactEmail}`}
                                 className="text-meta text-accent hover:underline"
@@ -418,7 +435,7 @@ function LedgerRow({
                               </a>
                             )}
                           </div>
-                          {vendor.notes && (
+                          {showPersonal && vendor.notes && (
                             <p className="whitespace-pre-line text-meta text-ink-muted">
                               {vendor.notes}
                             </p>
@@ -431,6 +448,7 @@ function LedgerRow({
                             heading="Booked on"
                             className="mt-1"
                           />
+                          {!readOnly && (
                           <details className="mt-1">
                             <summary className="cursor-pointer list-none text-meta text-ink-muted hover:text-ink">
                               Edit
@@ -464,12 +482,14 @@ function LedgerRow({
                               </button>
                             </form>
                           </details>
+                          )}
                         </li>
                       );
                     })}
                   </ul>
                 )}
 
+                {!readOnly && (
                 <details className="mt-2">
                   <summary className="cursor-pointer list-none text-meta text-ink-muted hover:text-ink">
                     + Add vendor
@@ -487,6 +507,7 @@ function LedgerRow({
                     </button>
                   </form>
                 </details>
+                )}
               </div>
             </div>
 
@@ -499,6 +520,7 @@ function LedgerRow({
               className="mt-4 border-t border-rule-soft pt-3"
             />
 
+            {!readOnly && (
             <div className="mt-4 flex flex-wrap items-end gap-2 border-t border-rule-soft pt-3">
               <form action={editLine} className="flex flex-wrap items-end gap-2">
                 <input
@@ -532,6 +554,7 @@ function LedgerRow({
                 </button>
               </form>
             </div>
+            )}
           </details>
         </td>
       </tr>

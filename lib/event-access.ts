@@ -18,6 +18,41 @@ export function accessibleEvents(me: Pick<TeamMember, "id" | "role" | "isDemo">)
 }
 
 /**
+ * Read-only means nothing higher has been granted: a READ_ONLY org role, no abilities,
+ * and READ_ONLY on every event they're on. Any one higher grant lifts it entirely.
+ */
+export async function isReadOnly(me: Pick<TeamMember, "id" | "role">): Promise<boolean> {
+  if (me.role !== "READ_ONLY") return false;
+  const higher = await prisma.teamMember.count({
+    where: {
+      id: me.id,
+      OR: [{ abilities: { some: {} } }, { eventMemberships: { some: { role: { not: "READ_ONLY" } } } }],
+    },
+  });
+  return higher === 0;
+}
+
+/**
+ * Whether the viewer may see people's contact and personal details. Read-only accounts see
+ * names only, so pages leave everything else out of what they render, which means it's
+ * never sent to the browser at all.
+ */
+export async function canSeePersonal(): Promise<boolean> {
+  return !(await viewerIsReadOnly());
+}
+
+/** For pages: whether to hide edit controls from the current viewer. */
+export async function viewerIsReadOnly(): Promise<boolean> {
+  const me = await getCurrentTeamMember();
+  return !me || (await isReadOnly(me));
+}
+
+/** For writes outside any one event (creating events, deleting templates). */
+export async function requireNotReadOnly(me: Pick<TeamMember, "id" | "role">) {
+  if (await isReadOnly(me)) redirect("/forbidden");
+}
+
+/**
  * Every event-scoped server action calls this first. The eventId comes from the client,
  * so it's checked here rather than trusted. Signed out goes to sign-in; signed in without
  * access goes to the permission page. Returns the caller's TeamMember.
@@ -31,6 +66,8 @@ export async function requireEventAccess(eventId: string): Promise<TeamMember> {
     select: { id: true },
   });
   if (!event) redirect("/forbidden");
+  // Every event action changes something, and read-only accounts change nothing.
+  await requireNotReadOnly(me);
 
   return me;
 }

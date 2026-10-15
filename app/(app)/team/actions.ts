@@ -6,7 +6,7 @@ import type { Ability, TeamRole } from "@prisma/client";
 import { requireOrgAdmin } from "@/lib/event-access";
 import { prisma } from "@/lib/prisma";
 
-const VALID_ROLES: TeamRole[] = ["ADMIN", "ORGANIZER", "STAFF"];
+const VALID_ROLES: TeamRole[] = ["ADMIN", "ORGANIZER", "STAFF", "READ_ONLY"];
 const VALID_ABILITIES: Ability[] = ["BUILDER", "VOLUNTEER_ADMIN"];
 
 export async function createTeamMember(formData: FormData) {

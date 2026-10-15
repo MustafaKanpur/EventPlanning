@@ -6,4 +6,5 @@ export const TEAM_ROLE_STYLES: Record<string, string> = {
   ADMIN: "bg-gold-100 text-gold-700",
   ORGANIZER: "bg-primary-100 text-primary-700",
   STAFF: "bg-gray-100 text-gray-600",
+  READ_ONLY: "bg-gray-100 text-gray-500",
 };

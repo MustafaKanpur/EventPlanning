@@ -7,7 +7,7 @@ import type { TeamRole } from "@prisma/client";
 import { inEvent, requireEventAdmin } from "@/lib/event-access";
 import { prisma } from "@/lib/prisma";
 
-const VALID_ROLES: TeamRole[] = ["ADMIN", "ORGANIZER", "STAFF"];
+const VALID_ROLES: TeamRole[] = ["ADMIN", "ORGANIZER", "STAFF", "READ_ONLY"];
 
 // Managing who is on the event, and as what, is for its owner and admins only.
 

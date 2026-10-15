@@ -1,5 +1,6 @@
 import type { FieldDefinition, ScreenDefinition, ScreenRecord } from "@prisma/client";
 
+import { EditOnly } from "@/components/read-only";
 import {
   checklistProgress,
   checklistShape,
@@ -198,6 +199,7 @@ function AddRecordForm({
   const editable = screen.fields;
 
   return (
+    <EditOnly>
     <details>
       <summary className="cursor-pointer list-none text-ui text-ink-muted transition-colors hover:text-ink">
         {label}
@@ -254,6 +256,7 @@ function AddRecordForm({
         </button>
       </form>
     </details>
+    </EditOnly>
   );
 }
 
@@ -323,6 +326,7 @@ function TableView({
                       </td>
                     ))}
                     <td className="px-2 py-1 text-right">
+                      <EditOnly>
                       <form action={remove}>
                         <button
                           type="submit"
@@ -331,6 +335,7 @@ function TableView({
                           Delete
                         </button>
                       </form>
+                      </EditOnly>
                     </td>
                   </tr>
                 );
@@ -456,6 +461,7 @@ function ChecklistView({
                     </span>
                   ))}
 
+                  <EditOnly>
                   <form action={remove}>
                     <button
                       type="submit"
@@ -464,6 +470,7 @@ function ChecklistView({
                       Delete
                     </button>
                   </form>
+                  </EditOnly>
                 </li>
               );
             })}

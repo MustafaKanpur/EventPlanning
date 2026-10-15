@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import type { FieldDefinition } from "@prisma/client";
 
+import { useReadOnly } from "@/components/read-only";
 import { formatMoney } from "@/lib/format";
 import type { LinkOption } from "@/lib/link-targets";
 import { updateCell } from "@/app/(app)/events/[eventId]/screens/actions";
@@ -23,7 +24,6 @@ export function Cell({
   field,
   value,
   linkOptions,
-  readOnly = false,
 }: {
   eventId: string;
   recordId: string;
@@ -31,19 +31,27 @@ export function Cell({
   value: unknown;
   /** Options for this field's target type, when it is a LINK or PERSON. */
   linkOptions?: LinkOption[];
-  readOnly?: boolean;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
+  const readOnly = useReadOnly();
   const action = updateCell.bind(null, eventId, recordId, field.key);
   const submit = () => formRef.current?.requestSubmit();
   const text = value === null || value === undefined ? "" : String(value);
 
+  // Read-only viewers get the value as plain text: names for links, never raw ids.
   if (readOnly) {
-    return (
-      <span className="block px-2 py-1.5 text-[13px] text-ink-muted">
-        {text ? <span title={text}>{text.slice(0, 24)}</span> : "—"}
-      </span>
-    );
+    const choices = (field.options as { choices?: { value: string; label: string }[] } | null)?.choices;
+    const shown =
+      field.type === "LINK" || field.type === "PERSON"
+        ? linkOptions?.find((o) => o.id === text)?.label
+        : field.type === "CHECKBOX"
+          ? value === true || value === "true" ? "✓" : ""
+          : field.type === "SELECT"
+            ? choices?.find((c) => c.value === text)?.label ?? text
+            : field.type === "CURRENCY" && text
+              ? formatMoney(Number(text))
+              : text;
+    return <span className="block px-2 py-1.5 text-[13px] text-ink">{shown || "—"}</span>;
   }
 
   // A link cell is a picker plus a way through to the thing it points at: the value is

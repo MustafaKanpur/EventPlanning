@@ -5,7 +5,7 @@ import { notFound, redirect } from "next/navigation";
 
 import { getCurrentTeamMember } from "@/lib/current-team-member";
 import { templateScope } from "@/lib/demo";
-import { requireEventAccess } from "@/lib/event-access";
+import { requireEventAccess, requireNotReadOnly } from "@/lib/event-access";
 import { prisma } from "@/lib/prisma";
 import { saveEventAsTemplate } from "@/lib/templates";
 
@@ -30,6 +30,7 @@ export async function createTemplateFromEvent(eventId: string, formData: FormDat
 export async function deleteTemplate(templateId: string) {
   const me = await getCurrentTeamMember();
   if (!me) redirect("/signin");
+  await requireNotReadOnly(me);
 
   // Built-ins are re-seeded on demand, so deleting one would just reappear; block it
   // rather than let the button lie.

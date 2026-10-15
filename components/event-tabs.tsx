@@ -94,12 +94,15 @@ export function EventTabs({
   screens,
   tabOrder,
   canBuild,
+  readOnly,
 }: {
   eventId: string;
   screens: ScreenTab[];
   tabOrder: string[];
   /** Only builders can add screens. */
   canBuild: boolean;
+  /** Read-only viewers can't reorder tabs. */
+  readOnly: boolean;
 }) {
   const pathname = usePathname();
 
@@ -126,7 +129,9 @@ export function EventTabs({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId, JSON.stringify(screens), JSON.stringify(tabOrder)]);
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
+  const pointer = useSensor(PointerSensor, { activationConstraint: { distance: 4 } });
+  // No sensors, no dragging.
+  const sensors = useSensors(...(readOnly ? [] : [pointer]));
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;

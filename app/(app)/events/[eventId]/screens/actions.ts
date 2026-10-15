@@ -66,7 +66,7 @@ async function syncLinks(
 
   // ponytail: loads each target's full option list per save; query by id if events get huge.
   for (const target of Array.from(new Set(rows.map((r) => r.targetType)))) {
-    const allowed = new Set((await listLinkOptions(eventId, target)).map((o) => o.id));
+    const allowed = new Set((await listLinkOptions(eventId, target, false)).map((o) => o.id));
     if (rows.some((r) => r.targetType === target && !allowed.has(r.targetId))) notFound();
   }
 

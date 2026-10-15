@@ -89,6 +89,9 @@ enum TeamRole {
   ADMIN
   ORGANIZER
   STAFF
+  /// Can view what they're given but change nothing, and sees people's names only. Any
+  /// higher role or ability lifts it entirely (isReadOnly in lib/event-access.ts).
+  READ_ONLY
 }
 
 /// A named bundle of screen definitions with no records — the reuse story for teams
@@ -160,7 +163,8 @@ model TeamMember {
   email  String   @unique
   /// Tap-to-call on the day-of view.
   phone  String?
-  role   TeamRole @default(STAFF)
+  /// New sign-ups start read-only until an org ADMIN grants more.
+  role   TeamRole @default(READ_ONLY)
   userId String?  @unique
   user   User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 

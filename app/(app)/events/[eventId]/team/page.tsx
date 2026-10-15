@@ -1,3 +1,4 @@
+import { canSeePersonal } from "@/lib/event-access";
 import { prisma } from "@/lib/prisma";
 import { getChecklistScreens, valuesOf } from "@/lib/records";
 import { displayName } from "@/lib/format";
@@ -18,6 +19,7 @@ function ownership(taskCount: number, blockCount: number): string {
 export default async function PeoplePage({ params }: { params: { eventId: string } }) {
   const { eventId } = params;
 
+  const showPersonal = await canSeePersonal();
   const eventIsDemo = (await prisma.event.findUnique({ where: { id: eventId }, select: { isDemo: true } }))?.isDemo ?? false;
   const [event, allTeamMembers, checklists] = await Promise.all([
     prisma.event.findUnique({
@@ -101,10 +103,10 @@ export default async function PeoplePage({ params }: { params: { eventId: string
           </thead>
           <tbody className="divide-y divide-rule-soft">
             {people.map((person) => {
-              const name = displayName(person.member.name, person.member.email);
+              const name = showPersonal ? displayName(person.member.name, person.member.email) : person.member.name;
               // Only show the email underneath when it isn't already the display name —
-              // the old row printed the same address twice.
-              const secondary = name === person.member.email ? null : person.member.email;
+              // the old row printed the same address twice. Read-only accounts see names only.
+              const secondary = !showPersonal || name === person.member.email ? null : person.member.email;
               const changeRole = person.eventMemberId
                 ? updateEventMemberRole.bind(null, eventId, person.eventMemberId)
                 : null;
@@ -143,6 +145,7 @@ export default async function PeoplePage({ params }: { params: { eventId: string
                           defaultValue={person.role}
                           className={field}
                         >
+                          <option value="READ_ONLY">Read-only</option>
                           <option value="STAFF">Staff</option>
                           <option value="ORGANIZER">Organizer</option>
                           <option value="ADMIN">Admin</option>
@@ -206,6 +209,7 @@ export default async function PeoplePage({ params }: { params: { eventId: string
                 Role on this event
               </label>
               <select id="add-role" name="role" defaultValue="STAFF" className={field}>
+                <option value="READ_ONLY">Read-only</option>
                 <option value="STAFF">Staff</option>
                 <option value="ORGANIZER">Organizer</option>
                 <option value="ADMIN">Admin</option>

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { getCurrentTeamMember } from "@/lib/current-team-member";
-import { accessibleEvents } from "@/lib/event-access";
+import { accessibleEvents, canSeePersonal } from "@/lib/event-access";
 import { prisma } from "@/lib/prisma";
 import { displayName, formatDuration, formatLongDate, formatTime } from "@/lib/format";
 import { dayState, isToday } from "@/lib/day-of";
@@ -90,14 +90,16 @@ export default async function DayOfPage({ params }: { params: { eventId: string 
   const today = isToday(event.eventDate, now);
 
   const vendors = event.budgetLines.flatMap((line) => line.vendors);
+  // Read-only accounts get names without phone numbers.
+  const showPersonal = await canSeePersonal();
   const contacts: Contact[] = [
     {
       label: "Event lead",
       name: displayName(event.owner.name, event.owner.email),
-      phone: event.owner.phone,
+      phone: showPersonal ? event.owner.phone : null,
     },
     ...vendors
-      .filter((v) => v.contactPhone)
+      .filter((v) => showPersonal && v.contactPhone)
       .slice(0, 3)
       .map((v) => ({ label: "Vendor", name: v.name, phone: v.contactPhone })),
   ];

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { getCurrentTeamMember } from "@/lib/current-team-member";
-import { hasAbility } from "@/lib/event-access";
+import { canSeePersonal, hasAbility } from "@/lib/event-access";
 import { prisma } from "@/lib/prisma";
 import { ScreenView } from "@/components/screens/screen-view";
 import { listOptionsForTargets } from "@/lib/link-targets";
@@ -34,7 +34,7 @@ export default async function ScreenPage({
   const targets = screen.fields
     .map((f) => linkTargetOf(f))
     .filter((t): t is NonNullable<typeof t> => t !== null);
-  const linkOptions = await listOptionsForTargets(params.eventId, targets);
+  const linkOptions = await listOptionsForTargets(params.eventId, targets, await canSeePersonal());
 
   return (
     <div className="space-y-4">

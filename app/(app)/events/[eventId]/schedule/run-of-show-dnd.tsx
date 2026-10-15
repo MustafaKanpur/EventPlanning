@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
+
+import { useReadOnly } from "@/components/read-only";
 import {
   DndContext,
   DragOverlay,
@@ -39,7 +41,9 @@ export function RunOfShowDnd({
 }) {
   const [draggingLabel, setDraggingLabel] = useState<string | null>(null);
   const [, startTransition] = useTransition();
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
+  const pointer = useSensor(PointerSensor, { activationConstraint: { distance: 4 } });
+  // Read-only viewers get no sensors, so nothing can be dragged or dropped.
+  const sensors = useSensors(...(useReadOnly() ? [] : [pointer]));
 
   const collisionDetection: CollisionDetection = (args) => {
     const pointer = pointerWithin(args);
@@ -186,9 +190,11 @@ export function DraggableRow({
     id: `placed-${id}`,
     data: { itemId: id, title },
   });
+  const readOnly = useReadOnly();
 
   return (
     <div ref={setNodeRef} className={`relative ${isDragging ? "opacity-40" : ""} ${className}`}>
+      {!readOnly && (
       <button
         ref={setActivatorNodeRef}
         {...listeners}
@@ -203,6 +209,7 @@ export function DraggableRow({
           <circle cx="2" cy="12" r="1.2" /><circle cx="6" cy="12" r="1.2" />
         </svg>
       </button>
+      )}
       {children}
     </div>
   );

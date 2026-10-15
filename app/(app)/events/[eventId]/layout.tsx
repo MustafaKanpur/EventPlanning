@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { getCurrentTeamMember } from "@/lib/current-team-member";
-import { accessibleEvents, hasAbility } from "@/lib/event-access";
+import { accessibleEvents, hasAbility, isReadOnly } from "@/lib/event-access";
+import { ReadOnlyProvider } from "@/components/read-only";
 import { prisma } from "@/lib/prisma";
 import { EventTabs } from "@/components/event-tabs";
 import { EventSettingsMenu } from "@/components/event-settings-menu";
@@ -42,6 +43,7 @@ export default async function EventLayout({
   });
   if (!event) notFound();
 
+  const readOnly = await isReadOnly(me);
   const canDelete =
     me.role === "ADMIN" || event.ownerId === me.id || event.members.some((m) => m.role === "ADMIN");
 
@@ -117,9 +119,11 @@ export default async function EventLayout({
         screens={screens}
         tabOrder={tabOrder}
         canBuild={await hasAbility(me, "BUILDER")}
+        readOnly={readOnly}
       />
 
-      {children}
+      {/* Client components below read this to drop their edit controls. */}
+      <ReadOnlyProvider readOnly={readOnly}>{children}</ReadOnlyProvider>
     </div>
   );
 }

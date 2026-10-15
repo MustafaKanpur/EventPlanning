@@ -30,6 +30,8 @@ export const LINK_TARGET_LABELS: Record<LinkTarget, string> = {
 export async function listLinkOptions(
   eventId: string,
   target: LinkTarget,
+  /** False for read-only viewers: people appear by name only, with no email. */
+  showPersonal: boolean,
 ): Promise<LinkOption[]> {
   switch (target) {
     case "SCHEDULE_ITEM": {
@@ -79,8 +81,8 @@ export async function listLinkOptions(
       const people = [event.owner, ...event.members.map((m) => m.teamMember)];
       return people.map((person) => ({
         id: person.id,
-        label: displayName(person.name, person.email),
-        sublabel: person.email,
+        label: showPersonal ? displayName(person.name, person.email) : person.name,
+        sublabel: showPersonal ? person.email : undefined,
         href: `/events/${eventId}/team`,
       }));
     }
@@ -92,7 +94,7 @@ export async function listLinkOptions(
       return rows.map((row) => ({
         id: row.id,
         label: row.name,
-        sublabel: row.email,
+        sublabel: showPersonal ? row.email : undefined,
         href: `/events/${eventId}/registrants`,
       }));
     }
@@ -121,10 +123,11 @@ export async function listLinkOptions(
 export async function listOptionsForTargets(
   eventId: string,
   targets: LinkTarget[],
+  showPersonal: boolean,
 ): Promise<Record<string, LinkOption[]>> {
   const unique = Array.from(new Set(targets));
   const entries = await Promise.all(
-    unique.map(async (target) => [target, await listLinkOptions(eventId, target)] as const),
+    unique.map(async (target) => [target, await listLinkOptions(eventId, target, showPersonal)] as const),
   );
   return Object.fromEntries(entries);
 }

@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 
+import { useReadOnly } from "@/components/read-only";
+
 import { approveDraftBlock, rejectDraftBlock } from "./actions";
 
 /**
@@ -32,6 +34,8 @@ export function PendingBlock({
   overlaps: string | null;
 }) {
   const [open, setOpen] = useState(false);
+  // Read-only viewers see the proposal but can't open the Approve / Reject bubble.
+  const readOnly = useReadOnly();
   const [isPending, startTransition] = useTransition();
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -69,6 +73,7 @@ export function PendingBlock({
         ref={trigger}
         type="button"
         onClick={() => setOpen((v) => !v)}
+        disabled={readOnly}
         aria-expanded={open}
         aria-controls={bubbleId}
         className={`flex w-full border-b border-l-2 border-b-rule-soft border-l-proposed text-left transition-colors ${
@@ -79,7 +84,7 @@ export function PendingBlock({
           <span className="block font-mono text-[14px] leading-none tabular-nums text-proposed">{start}</span>
         </span>
         <span className="min-w-0 flex-1 px-4 py-4">
-          <span className="block text-micro uppercase text-proposed">AI proposal · click to review</span>
+          <span className="block text-micro uppercase text-proposed">{readOnly ? "AI proposal" : "AI proposal · click to review"}</span>
           <span className="block text-[15px] text-ink">
             {title}
             {location && <span className="text-ink-muted"> · {location}</span>}
