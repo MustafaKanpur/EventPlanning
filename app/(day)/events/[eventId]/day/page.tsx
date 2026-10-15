@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { getCurrentTeamMember } from "@/lib/current-team-member";
-import { accessibleEvents, canSeePersonal } from "@/lib/event-access";
+import { accessibleEvents, canSeePersonal, isReadOnly } from "@/lib/event-access";
 import { prisma } from "@/lib/prisma";
 import { displayName, formatDuration, formatLongDate, formatTime } from "@/lib/format";
 import { dayState, isToday } from "@/lib/day-of";
@@ -28,6 +28,8 @@ export default async function DayOfPage({ params }: { params: { eventId: string 
 
   const me = await getCurrentTeamMember();
   if (!me) notFound();
+  // Read-only viewers follow the day without the Start / Complete buttons.
+  const readOnly = await isReadOnly(me);
 
   const event = await prisma.event.findFirst({
     where: {
@@ -147,6 +149,7 @@ export default async function DayOfPage({ params }: { params: { eventId: string 
             <p className="text-meta text-ink-muted">
               left · ends {formatTime(state.now.endTime)} · {ownerOf(state.now)}
             </p>
+            {!readOnly && (
             <form action={markBlockComplete.bind(null, eventId, state.now.id)} className="mt-4">
               <button
                 type="submit"
@@ -155,6 +158,7 @@ export default async function DayOfPage({ params }: { params: { eventId: string 
                 Mark complete
               </button>
             </form>
+            )}
           </div>
         ) : (
           <div className="border border-rule bg-panel p-4">
@@ -185,6 +189,7 @@ export default async function DayOfPage({ params }: { params: { eventId: string 
               {formatTime(state.next.startTime)}
             </p>
           </div>
+          {!readOnly && (
           <form action={markBlockStarted.bind(null, eventId, state.next.id)} className="mt-3">
             <button
               type="submit"
@@ -193,6 +198,7 @@ export default async function DayOfPage({ params }: { params: { eventId: string 
               Start now
             </button>
           </form>
+          )}
         </section>
       )}
 

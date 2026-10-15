@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { getCurrentTeamMember } from "@/lib/current-team-member";
 import { templateScope } from "@/lib/demo";
+import { isReadOnly } from "@/lib/event-access";
 import { prisma } from "@/lib/prisma";
 import { ensureBuiltInTemplates } from "@/lib/templates";
 import { PageHeader } from "@/components/ui";
@@ -20,6 +22,7 @@ export default async function NewEventPage({
   await ensureBuiltInTemplates();
   const me = await getCurrentTeamMember();
   if (!me) return null;
+  if (await isReadOnly(me)) redirect("/forbidden");
   const templates = await prisma.template.findMany({
     where: templateScope(me),
     include: { _count: { select: { screens: true } } },

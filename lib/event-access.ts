@@ -78,8 +78,13 @@ export async function requireEventAccess(eventId: string): Promise<TeamMember> {
  */
 export async function requireEventAdmin(eventId: string): Promise<TeamMember> {
   const me = await requireEventAccess(eventId);
-  if (me.role === "ADMIN") return me;
+  if (!(await isEventAdmin(me, eventId))) redirect("/forbidden");
+  return me;
+}
 
+/** The same rule as a yes/no, for pages deciding whether to show team controls. */
+export async function isEventAdmin(me: Pick<TeamMember, "id" | "role">, eventId: string): Promise<boolean> {
+  if (me.role === "ADMIN") return true;
   const event = await prisma.event.findFirst({
     where: {
       id: eventId,
@@ -87,9 +92,7 @@ export async function requireEventAdmin(eventId: string): Promise<TeamMember> {
     },
     select: { id: true },
   });
-  if (!event) redirect("/forbidden");
-
-  return me;
+  return Boolean(event);
 }
 
 /** Org-wide changes (the roster, roles, abilities) are for org ADMINs only. */

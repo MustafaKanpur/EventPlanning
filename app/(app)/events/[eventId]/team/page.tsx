@@ -1,9 +1,17 @@
-import { canSeePersonal } from "@/lib/event-access";
+import { getCurrentTeamMember } from "@/lib/current-team-member";
+import { canSeePersonal, isEventAdmin, isReadOnly } from "@/lib/event-access";
 import { prisma } from "@/lib/prisma";
 import { getChecklistScreens, valuesOf } from "@/lib/records";
 import { displayName } from "@/lib/format";
 import { StatusDot } from "@/components/ui";
 import { addEventMember, removeEventMember, updateEventMemberRole } from "./actions";
+
+const ROLE_LABELS: Record<string, string> = {
+  READ_ONLY: "Read-only",
+  STAFF: "Staff",
+  ORGANIZER: "Organizer",
+  ADMIN: "Admin",
+};
 
 const field =
   "h-11 border border-rule bg-panel px-3 text-[13px] text-ink focus:border-accent focus:outline-none";
@@ -20,6 +28,9 @@ export default async function PeoplePage({ params }: { params: { eventId: string
   const { eventId } = params;
 
   const showPersonal = await canSeePersonal();
+  // Adding people and changing roles is for the event's admins; read-only viewers never are.
+  const me = await getCurrentTeamMember();
+  const canManage = Boolean(me) && !(await isReadOnly(me!)) && (await isEventAdmin(me!, eventId));
   const eventIsDemo = (await prisma.event.findUnique({ where: { id: eventId }, select: { isDemo: true } }))?.isDemo ?? false;
   const [event, allTeamMembers, checklists] = await Promise.all([
     prisma.event.findUnique({
@@ -134,7 +145,7 @@ export default async function PeoplePage({ params }: { params: { eventId: string
                     )}
                   </td>
                   <td className="px-4 py-3">
-                    {changeRole ? (
+                    {changeRole && canManage ? (
                       <form action={changeRole} className="flex items-center gap-2">
                         <label className="sr-only" htmlFor={`role-${person.key}`}>
                           Role for {name}
@@ -154,12 +165,14 @@ export default async function PeoplePage({ params }: { params: { eventId: string
                           Save
                         </button>
                       </form>
+                    ) : changeRole ? (
+                      <span className="text-[13px] text-ink-muted">{ROLE_LABELS[person.role] ?? person.role}</span>
                     ) : (
                       <StatusDot status="OWNER" label="Owner" tone="accent" />
                     )}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    {remove && (
+                    {remove && canManage && (
                       <form action={remove}>
                         <button
                           type="submit"
@@ -177,6 +190,7 @@ export default async function PeoplePage({ params }: { params: { eventId: string
         </table>
       </div>
 
+      {canManage && (
       <section>
         <h2 className="mb-2 text-micro uppercase text-ink-muted">Staff someone else</h2>
         {available.length === 0 ? (
@@ -224,6 +238,7 @@ export default async function PeoplePage({ params }: { params: { eventId: string
           </form>
         )}
       </section>
+      )}
     </div>
   );
 }

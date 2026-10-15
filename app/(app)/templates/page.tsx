@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { getCurrentTeamMember } from "@/lib/current-team-member";
 import { templateScope } from "@/lib/demo";
+import { isReadOnly } from "@/lib/event-access";
 import { prisma } from "@/lib/prisma";
 import { ensureBuiltInTemplates } from "@/lib/templates";
 import { PageHeader } from "@/components/ui";
@@ -11,6 +12,8 @@ export default async function TemplatesPage() {
   await ensureBuiltInTemplates();
   const me = await getCurrentTeamMember();
   if (!me) return null;
+  // Read-only accounts browse templates but can't start events from them or delete them.
+  const readOnly = await isReadOnly(me);
 
   const templates = await prisma.template.findMany({
     where: templateScope(me),
@@ -29,12 +32,14 @@ export default async function TemplatesPage() {
         title="Templates"
         subtitle="A named set of screens with no records. Start an event from one, or bottle an event you have already run."
         actions={
-          <Link
-            href="/events/new"
-            className="flex h-11 items-center border border-rule px-3 text-ui text-ink transition-colors hover:bg-panel-alt"
-          >
-            + Create event
-          </Link>
+          !readOnly && (
+            <Link
+              href="/events/new"
+              className="flex h-11 items-center border border-rule px-3 text-ui text-ink transition-colors hover:bg-panel-alt"
+            >
+              + Create event
+            </Link>
+          )
         }
       />
 
@@ -78,13 +83,15 @@ export default async function TemplatesPage() {
                   {template.isBuiltIn ? "Built in" : "Saved from an event"}
                 </td>
                 <td className="px-4 py-4 text-right">
+                  {!readOnly && (
                   <Link
                     href={`/events/new?template=${template.id}`}
                     className="text-[13px] text-accent hover:underline"
                   >
                     Use this →
                   </Link>
-                  {!template.isBuiltIn && (
+                  )}
+                  {!readOnly && !template.isBuiltIn && (
                     <form action={deleteTemplate.bind(null, template.id)} className="mt-1">
                       <button
                         type="submit"

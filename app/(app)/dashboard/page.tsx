@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { getCurrentTeamMember } from "@/lib/current-team-member";
+import { isReadOnly } from "@/lib/event-access";
 import { accessibleEvents } from "@/lib/event-access";
 import { prisma } from "@/lib/prisma";
 import { daysUntil, displayName, formatMoney } from "@/lib/format";
@@ -22,6 +23,8 @@ import {
 
 export default async function DashboardPage() {
   const me = await getCurrentTeamMember();
+  // Read-only accounts can't create events, so they aren't offered it.
+  const canCreate = me ? !(await isReadOnly(me)) : false;
 
   const events = me
     ? await prisma.event.findMany({
@@ -155,12 +158,14 @@ export default async function DashboardPage() {
               }`
         }
         actions={
-          <Link
-            href="/events/new"
-            className="flex h-11 items-center border border-rule px-3 text-ui text-ink transition-colors hover:bg-panel-alt"
-          >
-            + Create event
-          </Link>
+          canCreate && (
+            <Link
+              href="/events/new"
+              className="flex h-11 items-center border border-rule px-3 text-ui text-ink transition-colors hover:bg-panel-alt"
+            >
+              + Create event
+            </Link>
+          )
         }
       />
 
@@ -194,11 +199,17 @@ export default async function DashboardPage() {
             {rows.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-4 py-10 text-[13px] text-ink-muted">
-                  No events yet.{" "}
-                  <Link href="/events/new" className="text-accent hover:underline">
-                    Create your first one
-                  </Link>{" "}
-                  to get started.
+                  {canCreate ? (
+                    <>
+                      No events yet.{" "}
+                      <Link href="/events/new" className="text-accent hover:underline">
+                        Create your first one
+                      </Link>{" "}
+                      to get started.
+                    </>
+                  ) : (
+                    "No events yet. Events you're added to will appear here."
+                  )}
                 </td>
               </tr>
             ) : (
