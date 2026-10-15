@@ -45,7 +45,7 @@ export type TimelineRow =
   | { kind: "gap"; start: Date; end: Date; minutes: number }
   | TimelineProjectionRow;
 
-export function isPlaced(block: RunBlock): block is PlacedBlock {
+function isPlaced(block: RunBlock): block is PlacedBlock {
   return block.startTime !== null && block.endTime !== null;
 }
 

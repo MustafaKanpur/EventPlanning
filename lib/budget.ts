@@ -36,7 +36,7 @@ const num = (v: unknown) => {
   return Number.isFinite(n) ? n : 0;
 };
 
-export function lineStatus(
+function lineStatus(
   planned: number,
   committed: number,
   actual: number,

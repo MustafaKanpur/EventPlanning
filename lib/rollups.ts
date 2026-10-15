@@ -13,7 +13,7 @@ import { readDate, readText, titleKeyOf, valuesOf } from "./records";
  * number that already exists — exactly the drift the registration-revenue rewrite got
  * rid of earlier. One extra query per page keeps a single source of truth.
  */
-export const RUN_OF_SHOW_TARGET = "RUN_OF_SHOW";
+const RUN_OF_SHOW_TARGET = "RUN_OF_SHOW";
 
 export type CurrencyRollup = {
   screenId: string;

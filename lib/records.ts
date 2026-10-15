@@ -20,7 +20,7 @@ export function readText(values: RecordValues, key: string): string {
   return v === null || v === undefined ? "" : String(v);
 }
 
-export function readBool(values: RecordValues, key: string): boolean {
+function readBool(values: RecordValues, key: string): boolean {
   return values[key] === true || values[key] === "true";
 }
 

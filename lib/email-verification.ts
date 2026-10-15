@@ -14,7 +14,7 @@ const identifierFor = (email: string) => `verify-email:${email}`;
 const hashToken = (token: string) => createHash("sha256").update(token).digest("hex");
 
 /** The account that becomes org ADMIN once verified (the first-admin bootstrap). */
-export function isAdminEmail(email: string): boolean {
+function isAdminEmail(email: string): boolean {
   const admin = process.env.ADMIN_EMAIL?.trim().toLowerCase();
   return Boolean(admin) && email.toLowerCase() === admin;
 }

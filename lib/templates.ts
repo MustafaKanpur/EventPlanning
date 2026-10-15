@@ -44,7 +44,7 @@ const linkTo = (target: string): Prisma.InputJsonValue => ({
  * needs sessions and speakers. Held in code and materialised into Template rows on
  * demand, so editing this file is how a built-in changes.
  */
-export const TEMPLATE_BLUEPRINTS: TemplateSpec[] = [
+const TEMPLATE_BLUEPRINTS: TemplateSpec[] = [
   {
     slug: "gala-dinner",
     name: "Gala / Dinner",

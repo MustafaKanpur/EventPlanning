@@ -14,7 +14,7 @@ export type ViewRequirement = {
   suggestType: FieldType;
 };
 
-export const VIEW_REQUIREMENTS: Partial<Record<ViewType, ViewRequirement>> = {
+const VIEW_REQUIREMENTS: Partial<Record<ViewType, ViewRequirement>> = {
   BOARD: {
     types: ["SELECT"],
     need: "a Select field to group the columns by",

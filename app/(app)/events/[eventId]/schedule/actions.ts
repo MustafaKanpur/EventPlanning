@@ -307,7 +307,6 @@ export async function draftScheduleItems(eventId: string, rawPrompt: string): Pr
       startTime,
       endTime,
       durationMinutes: block.durationMinutes,
-      suggestedStart: minutes === null ? null : startTime,
     };
   });
 
