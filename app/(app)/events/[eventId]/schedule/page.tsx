@@ -375,7 +375,7 @@ export default async function RunOfShowPage({
 
         <aside className="w-full shrink-0 space-y-8 lg:w-[330px] print:hidden">
           <section>
-            <h2 className="mb-2 text-micro uppercase text-ink-muted">Blocking the schedule</h2>
+            <h2 className="mb-2 text-micro text-ink-muted">Blocking the schedule</h2>
             <div className="border border-rule bg-panel">
               {blockers.length === 0 ? (
                 <p className="px-3 py-4 text-[13px] text-ink-muted">
@@ -414,7 +414,7 @@ export default async function RunOfShowPage({
           {!readOnly && <DraftWithAi eventId={eventId} />}
 
           <section>
-            <h2 className="mb-2 text-micro uppercase text-ink-muted">Not yet placed</h2>
+            <h2 className="mb-2 text-micro text-ink-muted">Not yet placed</h2>
             {unplaced.length === 0 ? (
               <p className="border border-rule bg-panel px-3 py-4 text-[13px] text-ink-muted">
                 Every block has a slot.
@@ -473,7 +473,7 @@ function ProjectionRow({
           {row.title}{" "}
           <Link
             href={`/events/${eventId}/screens/${row.screenId}`}
-            className="text-micro uppercase text-accent hover:underline"
+            className="text-micro text-accent hover:underline"
           >
             {row.screenName}
           </Link>
@@ -623,7 +623,7 @@ function BlockRow({
                             height="8"
                             viewBox="0 0 24 24"
                             fill="none"
-                            stroke="#FFFDF8"
+                            stroke="#FFFFFF"
                             strokeWidth={3}
                             aria-hidden="true"
                           >
@@ -640,7 +640,7 @@ function BlockRow({
                   >
                     {task.title}
                     {task.screenName !== "Tasks" && (
-                      <span className="ml-2 text-micro uppercase text-ink-muted">
+                      <span className="ml-2 text-micro text-ink-muted">
                         {task.screenName}
                       </span>
                     )}

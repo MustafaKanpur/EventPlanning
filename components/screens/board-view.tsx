@@ -118,7 +118,7 @@ function Column({
     >
       <div className="mb-2 flex items-center gap-2 px-1">
         <span
-          className={`px-2 py-0.5 text-micro uppercase ${
+          className={`px-2 py-0.5 text-micro ${
             OPTION_COLOR_CLASSES[column.color] ?? "bg-panel-alt text-ink-muted"
           }`}
         >

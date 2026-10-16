@@ -98,7 +98,7 @@ export function Cell({
             }`}
           >
             {checked && (
-              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#FFFDF8" strokeWidth={3} aria-hidden="true">
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth={3} aria-hidden="true">
                 <path d="M20 6 9 17l-5-5" />
               </svg>
             )}

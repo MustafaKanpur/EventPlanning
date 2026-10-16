@@ -148,7 +148,7 @@ export default async function BudgetPage({ params }: { params: { eventId: string
                   <th
                     key={col.key}
                     scope="col"
-                    className={`px-4 text-micro font-medium uppercase text-ink-muted ${
+                    className={`px-4 text-micro font-medium text-ink-muted ${
                       col.align === "right" ? "text-right" : "text-left"
                     }`}
                   >
@@ -301,7 +301,7 @@ function LedgerRow({
 
             <div className="mt-3 grid gap-6 border-t border-rule-soft pt-3 lg:grid-cols-2">
               <div>
-                <h3 className="mb-2 text-micro uppercase text-ink-muted">Line items</h3>
+                <h3 className="mb-2 text-micro text-ink-muted">Line items</h3>
                 {source.lineItems.length === 0 ? (
                   <p className="text-[13px] text-ink-muted">Nothing itemised yet.</p>
                 ) : (
@@ -414,7 +414,7 @@ function LedgerRow({
               </div>
 
               <div>
-                <h3 className="mb-2 text-micro uppercase text-ink-muted">Vendors</h3>
+                <h3 className="mb-2 text-micro text-ink-muted">Vendors</h3>
                 {source.vendors.length === 0 ? (
                   <p className="text-[13px] text-ink-muted">No vendors on this category.</p>
                 ) : (

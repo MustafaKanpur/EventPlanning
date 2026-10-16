@@ -51,7 +51,7 @@ export default async function TemplatesPage() {
                 <th
                   key={label || i}
                   scope="col"
-                  className={`px-4 text-micro font-medium uppercase text-ink-muted ${
+                  className={`px-4 text-micro font-medium text-ink-muted ${
                     i === 3 ? "text-right" : ""
                   }`}
                 >

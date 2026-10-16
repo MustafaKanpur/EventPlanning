@@ -29,7 +29,7 @@ export default async function EventVolunteerSignupPage({
     <div className="flex min-h-screen items-center justify-center bg-ground px-4 py-10">
       <div className="w-full max-w-md space-y-6 rounded-2xl border border-white/10 bg-panel p-8">
         <div className="space-y-1 text-center">
-          <p className="text-xs font-medium uppercase tracking-wide text-ink-muted">Volunteer at</p>
+          <p className="text-xs font-medium tracking-wide text-ink-muted">Volunteer at</p>
           <h1 className="text-xl font-semibold tracking-tight text-ink">{event.name}</h1>
         </div>
 

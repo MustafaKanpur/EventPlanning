@@ -186,7 +186,7 @@ export default async function DashboardPage() {
                 <th
                   key={label}
                   scope="col"
-                  className={`px-4 text-micro font-medium uppercase text-ink-muted ${
+                  className={`px-4 text-micro font-medium text-ink-muted ${
                     align === "right" ? "text-right" : "text-left"
                   }`}
                 >

@@ -84,7 +84,7 @@ export function PendingBlock({
           <span className="block font-mono text-[14px] leading-none tabular-nums text-proposed">{start}</span>
         </span>
         <span className="min-w-0 flex-1 px-4 py-4">
-          <span className="block text-micro uppercase text-proposed">{readOnly ? "AI proposal" : "AI proposal · click to review"}</span>
+          <span className="block text-micro text-proposed">{readOnly ? "AI proposal" : "AI proposal · click to review"}</span>
           <span className="block text-[15px] text-ink">
             {title}
             {location && <span className="text-ink-muted"> · {location}</span>}
@@ -100,7 +100,7 @@ export function PendingBlock({
           aria-label={`Review proposed block: ${title}`}
           className="absolute right-2 top-full z-30 mt-1 w-72 border border-proposed bg-panel p-3 lg:left-full lg:right-auto lg:top-2 lg:ml-3 lg:mt-0"
         >
-          <p className="text-micro uppercase text-proposed">Proposed by AI</p>
+          <p className="text-micro text-proposed">Proposed by AI</p>
           <p className="mt-1 text-[14px] text-ink">{title}</p>
           <p className="font-mono text-meta tabular-nums text-ink-muted">{timeLabel}</p>
           {notes && <p className="mt-1 text-caption text-ink-muted">{notes}</p>}

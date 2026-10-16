@@ -39,7 +39,7 @@ export function toneForStatus(status: string): Tone {
 
 /**
  * Replaces the old pill badges. The dot carries the colour and the label stays
- * ink-muted — `success` only reaches 3.4:1 on our surfaces, so it can tint a 6px dot
+ * ink-muted — `success` drops under 4.5:1 on the ground colour, so it can tint a 6px dot
  * but must never be the text itself. `danger` clears AA, so it does colour its label.
  */
 export function StatusDot({
@@ -59,7 +59,7 @@ export function StatusDot({
     <span className={`inline-flex items-center gap-2 ${className}`}>
       <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${DOT[resolved]}`} aria-hidden="true" />
       <span
-        className={`text-micro uppercase ${resolved === "danger" ? "text-danger" : "text-ink-muted"}`}
+        className={`text-micro ${resolved === "danger" ? "text-danger" : "text-ink-muted"}`}
       >
         {text}
       </span>

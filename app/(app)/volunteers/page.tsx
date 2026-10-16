@@ -50,7 +50,7 @@ export default async function VolunteersPage() {
           </p>
         </div>
         <div className="space-y-1">
-          <p className="text-micro uppercase text-ink-muted">Volunteer sign-up link</p>
+          <p className="text-micro text-ink-muted">Volunteer sign-up link</p>
           <CopyLink url={signupUrl} />
         </div>
       </div>
@@ -83,7 +83,7 @@ export default async function VolunteersPage() {
 
       {pendingHours.length > 0 && (
         <section className="space-y-2">
-          <h2 className="text-micro uppercase text-ink-muted">Hours awaiting approval</h2>
+          <h2 className="text-micro text-ink-muted">Hours awaiting approval</h2>
           <div className="divide-y divide-rule rounded-[3px] border border-rule bg-panel">
             {pendingHours.map((entry) => (
               <div key={entry.id} className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
@@ -115,7 +115,7 @@ export default async function VolunteersPage() {
             <thead>
               <tr className="border-b border-rule bg-panel-alt">
                 {["Name", "Email", "Phone", "Hours", "Joined", "Status"].map((label) => (
-                  <th key={label} scope="col" className="px-4 py-2 text-micro font-medium uppercase text-ink-muted">
+                  <th key={label} scope="col" className="px-4 py-2 text-micro font-medium text-ink-muted">
                     {label}
                   </th>
                 ))}

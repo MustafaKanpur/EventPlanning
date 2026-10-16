@@ -1,7 +1,6 @@
 /**
- * Page title block. The display face is set at 400 deliberately — Instrument Serif at
- * 36px carries the hierarchy on its own, and bolding it makes it look like a heading
- * in a template.
+ * Page title block. Big Shoulders is a narrow signage face, so it runs large — 44px
+ * reads like a venue sign while staying no wider than the old 36px serif.
  */
 export function PageHeader({
   title,
@@ -17,10 +16,10 @@ export function PageHeader({
   return (
     <div className={`flex flex-wrap items-end justify-between gap-4 ${className}`}>
       <div className="min-w-0">
-        <h1 className="font-display text-[36px] font-normal leading-[1.1] tracking-[-0.01em] text-ink">
+        <h1 className="font-display text-[44px] leading-none tracking-[0.005em] text-ink">
           {title}
         </h1>
-        {subtitle && <p className="mt-1 text-[13px] text-ink-muted">{subtitle}</p>}
+        {subtitle && <p className="mt-2 text-[13px] text-ink-muted">{subtitle}</p>}
       </div>
       {actions && <div className="flex shrink-0 items-center gap-4">{actions}</div>}
     </div>

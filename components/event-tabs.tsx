@@ -44,9 +44,9 @@ export type ScreenTab = { id: string; name: string; icon: string | null };
 type Tab = { key: string; label: string; href: string };
 
 function tabClasses(active: boolean, extra = "") {
-  return `flex h-11 items-center border-b-2 px-1 text-ui transition-colors ${
+  return `flex h-11 items-center border-b-[3px] px-1 text-ui transition-colors ${
     active
-      ? "border-ink text-ink"
+      ? "border-accent font-medium text-ink"
       : "border-transparent text-ink-muted hover:text-ink"
   } ${extra}`;
 }

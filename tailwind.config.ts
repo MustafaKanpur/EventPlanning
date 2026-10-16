@@ -35,27 +35,29 @@ const config: Config = {
     },
     extend: {
       colors: {
-        ground: "#F7F5EF", // warm paper — the page itself
-        panel: "#FFFDF8", // raised surfaces
-        "panel-alt": "#F2EFE6", // table headers, rails
-        ink: "#1C1B18", // primary text
-        "ink-muted": "#6A675F", // secondary text
-        rule: "#D8D2C3", // container borders
-        "rule-soft": "#EBE6DA", // row dividers
-        accent: "#2A5547", // deep pine — links, primary progress
-        warn: "#8A6A1F", // pending, gaps, unpaid
-        danger: "#A33A1F", // overdue, over budget
-        success: "#6E8F5E", // registration fill
-        proposed: "#2F5FA8", // AI-proposed blocks awaiting approval
+        ground: "#ECEEF2", // cool concrete — the page itself
+        panel: "#FFFFFF", // raised surfaces
+        "panel-alt": "#E3E6EC", // table headers, rails
+        ink: "#1A1F36", // primary text, and the top bar
+        "ink-muted": "#586079", // secondary text
+        rule: "#CBD0DB", // container borders
+        "rule-soft": "#E2E5EB", // row dividers
+        accent: "#3B34C8", // ultramarine — links, primary progress
+        highlight: "#FFD23F", // gaffer-tape yellow — only the active marker in the dark bar
+        warn: "#8F5E00", // pending, gaps, unpaid
+        danger: "#C0341D", // overdue, over budget
+        success: "#23855A", // registration fill
+        proposed: "#A2389C", // AI-proposed blocks awaiting approval
       },
       fontFamily: {
-        sans: ["var(--font-archivo)", "ui-sans-serif", "sans-serif"],
-        display: ["var(--font-instrument-serif)", "ui-serif", "Georgia", "serif"],
-        mono: ["var(--font-jetbrains-mono)", "ui-monospace", "monospace"],
+        sans: ["var(--font-public-sans)", "ui-sans-serif", "sans-serif"],
+        display: ["var(--font-big-shoulders)", "ui-sans-serif", "sans-serif"],
+        // Figures stay in the UI face; globals.css makes them tabular so columns line up.
+        mono: ["var(--font-public-sans)", "ui-sans-serif", "sans-serif"],
       },
       fontSize: {
         // The system leans on a few precise sizes that aren't on Tailwind's scale.
-        micro: ["10.5px", { lineHeight: "1.2", letterSpacing: "0.09em" }],
+        micro: ["11.5px", { lineHeight: "1.25", letterSpacing: "0.01em" }],
         meta: ["11px", { lineHeight: "1.35" }],
         caption: ["12.5px", { lineHeight: "1.45" }],
         ui: ["13.5px", { lineHeight: "1.45" }],

@@ -27,7 +27,7 @@ export function DraftWithAi({ eventId }: { eventId: string }) {
 
   return (
     <section>
-      <h2 className="mb-2 text-micro uppercase text-ink-muted">Draft with AI</h2>
+      <h2 className="mb-2 text-micro text-ink-muted">Draft with AI</h2>
       <form onSubmit={submit} className="space-y-2 border border-rule bg-panel p-3">
         <label htmlFor="ai-draft-prompt" className="block text-caption text-ink-muted">
           Describe the programme. Proposed blocks appear on the schedule in blue for you to approve.

@@ -27,7 +27,7 @@ export default async function PublicRegistrationPage({
           <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-accent text-base text-warn">
             ✦
           </div>
-          <p className="text-xs font-medium uppercase tracking-wide text-ink-muted">You&apos;re invited to</p>
+          <p className="text-xs font-medium tracking-wide text-ink-muted">You&apos;re invited to</p>
           <h1 className="text-xl font-semibold tracking-tight text-ink">{event.name}</h1>
           <p className="text-sm text-ink-muted">
             {event.eventDate.toLocaleDateString(undefined, {

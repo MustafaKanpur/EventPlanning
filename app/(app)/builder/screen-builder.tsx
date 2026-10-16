@@ -535,7 +535,7 @@ export function ScreenBuilder({
         <div className="min-w-0 space-y-8">
           {/* ── 1 · what it is ───────────────────────────────────────────── */}
           <section>
-            <h2 className="text-micro uppercase text-ink-muted">
+            <h2 className="text-micro text-ink-muted">
               {isRegistration ? "1 · The form" : "1 · Screen"}
             </h2>
             <div className={`mt-2 flex flex-wrap items-end gap-3 ${isRegistration ? "hidden" : ""}`}>
@@ -621,7 +621,7 @@ export function ScreenBuilder({
 
           {/* ── 2 · fields ───────────────────────────────────────────────── */}
           <section>
-            <h2 className="text-micro uppercase text-ink-muted">2 · Fields</h2>
+            <h2 className="text-micro text-ink-muted">2 · Fields</h2>
             <div className="mt-2 grid gap-4 sm:grid-cols-[13rem_1fr]">
               <div className="space-y-4">
                 {/* Connections first and tinted: linking to the rest of the event is what
@@ -640,7 +640,7 @@ export function ScreenBuilder({
                   return (
                     <div key={group.label} className="space-y-2">
                       <p
-                        className={`text-micro uppercase ${
+                        className={`text-micro ${
                           primary ? "text-accent" : "text-ink-muted"
                         }`}
                       >
@@ -705,7 +705,7 @@ export function ScreenBuilder({
 
         {/* ── live preview ───────────────────────────────────────────────── */}
         <aside className="lg:sticky lg:top-6 lg:self-start">
-          <h2 className="text-micro uppercase text-ink-muted">Preview</h2>
+          <h2 className="text-micro text-ink-muted">Preview</h2>
           <p className="mb-2 mt-1 text-meta text-ink-muted">
             {name.trim() || "Untitled screen"} · placeholder records
           </p>

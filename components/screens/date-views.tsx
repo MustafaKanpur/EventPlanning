@@ -64,7 +64,7 @@ export function TimelineView({ records, fields, dateField }: Shared) {
       </div>
 
       <aside className="w-full shrink-0 lg:w-[260px]">
-        <h3 className="mb-2 text-micro uppercase text-ink-muted">Not yet placed</h3>
+        <h3 className="mb-2 text-micro text-ink-muted">Not yet placed</h3>
         {undated.length === 0 ? (
           <p className="border border-rule bg-panel px-3 py-4 text-[13px] text-ink-muted">
             Everything has a date.
@@ -137,7 +137,7 @@ export function CalendarView({
         {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
           <div
             key={day}
-            className="border-b border-r border-rule bg-panel-alt px-2 py-1.5 text-micro uppercase text-ink-muted"
+            className="border-b border-r border-rule bg-panel-alt px-2 py-1.5 text-micro text-ink-muted"
           >
             {day}
           </div>
@@ -216,7 +216,7 @@ export function LedgerView({
               <th
                 key={f.id}
                 scope="col"
-                className={`px-3 text-micro font-medium uppercase text-ink-muted ${
+                className={`px-3 text-micro font-medium text-ink-muted ${
                   f.type === "CURRENCY" ? "text-right" : "text-left"
                 }`}
               >

@@ -8,23 +8,24 @@
  * stop we don't have. Keep these in step with tailwind.config.ts.
  */
 :root {
-  --ground: #f7f5ef;
-  --panel: #fffdf8;
-  --panel-alt: #f2efe6;
-  --ink: #1c1b18;
-  --ink-muted: #6a675f;
-  --rule: #d8d2c3;
-  --rule-soft: #ebe6da;
-  --accent: #2a5547;
-  --warn: #8a6a1f;
-  --danger: #a33a1f;
-  --success: #6e8f5e;
+  --ground: #eceef2;
+  --panel: #ffffff;
+  --panel-alt: #e3e6ec;
+  --ink: #1a1f36;
+  --ink-muted: #586079;
+  --rule: #cbd0db;
+  --rule-soft: #e2e5eb;
+  --accent: #3b34c8;
+  --highlight: #ffd23f;
+  --warn: #8f5e00;
+  --danger: #c0341d;
+  --success: #23855a;
 }
 
 body {
   background: var(--ground);
   color: var(--ink);
-  font-family: var(--font-archivo), ui-sans-serif, sans-serif;
+  font-family: var(--font-public-sans), ui-sans-serif, sans-serif;
 }
 
 /* Numbers that sit in a column must not jitter between values. */
@@ -40,7 +41,7 @@ table {
 }
 
 ::selection {
-  background: #dfe7e1;
+  background: #dcdaf7;
   color: var(--ink);
 }
 

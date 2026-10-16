@@ -122,7 +122,7 @@ export default async function RegistrationPage({
         </div>
 
         <div className="space-y-1">
-          <p className="text-micro uppercase text-ink-muted">Public registration link</p>
+          <p className="text-micro text-ink-muted">Public registration link</p>
           <CopyLink url={registrationUrl} />
           <p className="pt-1 text-right">
             <Link
@@ -141,7 +141,7 @@ export default async function RegistrationPage({
 
       {customFields.length > 0 && (
         <form method="GET" className="flex flex-wrap items-end gap-3 border-b border-rule pb-4">
-          <p className="text-micro uppercase text-ink-muted">Filter</p>
+          <p className="text-micro text-ink-muted">Filter</p>
           {customFields.map((f) => {
             const current = filters.find((x) => x.field.key === f.key)?.value ?? "";
             const id = `filter-${f.key}`;
@@ -226,7 +226,7 @@ export default async function RegistrationPage({
                 <th
                   key={label}
                   scope="col"
-                  className={`px-4 text-micro font-medium uppercase text-ink-muted ${
+                  className={`px-4 text-micro font-medium text-ink-muted ${
                     i === 3 ? "text-right" : "text-left"
                   }`}
                 >
@@ -237,12 +237,12 @@ export default async function RegistrationPage({
                 <th
                   key={f.id}
                   scope="col"
-                  className="px-4 text-micro font-medium uppercase text-ink-muted"
+                  className="px-4 text-micro font-medium text-ink-muted"
                 >
                   {f.label}
                 </th>
               ))}
-              <th scope="col" className="px-4 text-micro font-medium uppercase text-ink-muted">
+              <th scope="col" className="px-4 text-micro font-medium text-ink-muted">
                 Budget line
               </th>
             </tr>

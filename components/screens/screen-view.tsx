@@ -286,14 +286,14 @@ function TableView({
                 <th
                   key={f.id}
                   scope="col"
-                  className={`px-2 text-micro font-medium uppercase text-ink-muted ${
+                  className={`px-2 text-micro font-medium text-ink-muted ${
                     f.type === "CURRENCY" || f.type === "NUMBER" ? "text-right" : "text-left"
                   }`}
                 >
                   {f.label}
                 </th>
               ))}
-              <th scope="col" className="px-2 text-micro font-medium uppercase text-ink-muted">
+              <th scope="col" className="px-2 text-micro font-medium text-ink-muted">
                 <span className="sr-only">Actions</span>
               </th>
             </tr>
@@ -403,16 +403,16 @@ function ChecklistView({
               aria-hidden="true"
               className="hidden h-head flex-wrap items-center gap-2 border-b border-rule bg-panel-alt px-2 sm:flex"
             >
-              <span className="flex w-[60px] shrink-0 items-center px-2 text-micro uppercase text-ink-muted">
+              <span className="flex w-[60px] shrink-0 items-center px-2 text-micro text-ink-muted">
                 {doneField.label}
               </span>
-              <span className="min-w-[12rem] flex-1 text-micro uppercase text-ink-muted">
+              <span className="min-w-[12rem] flex-1 text-micro text-ink-muted">
                 {titleField?.label ?? "Item"}
               </span>
               {detailFields.map((f) => (
                 <span
                   key={f.id}
-                  className="w-36 shrink-0 px-2 text-micro uppercase text-ink-muted"
+                  className="w-36 shrink-0 px-2 text-micro text-ink-muted"
                 >
                   {f.label}
                 </span>

@@ -45,7 +45,7 @@ export async function ReferencedBy({
 
   return (
     <div className={className}>
-      <p className="text-micro uppercase text-ink-muted">{heading}</p>
+      <p className="text-micro text-ink-muted">{heading}</p>
       <ul className="mt-1 space-y-1">
         {Array.from(byScreen.values()).map((group) => {
           const screen = group[0].screen;

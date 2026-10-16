@@ -114,7 +114,7 @@ export default async function VolunteerProfilePage({ params }: { params: { volun
       </details>
 
       <section className="space-y-2">
-        <h2 className="text-micro uppercase text-ink-muted">Shifts</h2>
+        <h2 className="text-micro text-ink-muted">Shifts</h2>
         {volunteer.signups.length === 0 ? (
           <p className="text-sm text-ink-muted">Not signed up for any shifts yet.</p>
         ) : (
@@ -135,7 +135,7 @@ export default async function VolunteerProfilePage({ params }: { params: { volun
       </section>
 
       <section className="space-y-2">
-        <h2 className="text-micro uppercase text-ink-muted">Hours</h2>
+        <h2 className="text-micro text-ink-muted">Hours</h2>
         {events.length === 0 ? (
           <p className="text-sm text-ink-muted">Hours can be logged once they&apos;ve signed up for an event.</p>
         ) : (

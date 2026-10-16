@@ -266,7 +266,7 @@ export function UnplacedBlock({
           isDragging ? "opacity-40" : ""
         }`}
       >
-        {aiDrafted && <span className="block text-micro uppercase text-accent">AI draft</span>}
+        {aiDrafted && <span className="block text-micro text-accent">AI draft</span>}
         <span className="block text-[13px] text-ink">{title}</span>
         <span className="mt-0.5 block text-meta text-ink-muted">
           {[

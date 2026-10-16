@@ -54,7 +54,7 @@ export default async function EventVolunteersPage({ params }: { params: { eventI
           </p>
         </div>
         <div className="space-y-1">
-          <p className="text-micro uppercase text-ink-muted">Volunteer sign-up link</p>
+          <p className="text-micro text-ink-muted">Volunteer sign-up link</p>
           <CopyLink url={signupUrl} />
         </div>
       </section>
@@ -156,7 +156,7 @@ export default async function EventVolunteersPage({ params }: { params: { eventI
 
       {canManage && (
       <section>
-        <h2 className="mb-2 text-micro uppercase text-ink-muted">Add a shift</h2>
+        <h2 className="mb-2 text-micro text-ink-muted">Add a shift</h2>
         <form action={addShift} className="grid gap-3 sm:grid-cols-4">
           <div className="space-y-1 sm:col-span-2">
             <label htmlFor="s-title" className="text-caption text-ink-muted">Title</label>

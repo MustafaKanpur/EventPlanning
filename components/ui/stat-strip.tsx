@@ -5,7 +5,7 @@ const FIGURE_TONE: Record<Tone, string> = {
   accent: "text-accent",
   warn: "text-warn",
   danger: "text-danger",
-  success: "text-ink", // success fails 4.5:1 as text — keep figures readable
+  success: "text-ink", // success fails 4.5:1 as text on the ground — keep figures readable
 };
 
 export type StatItem = {
@@ -32,7 +32,7 @@ export function StatStrip({
   return (
     <section className={className} aria-label={label}>
       {label && (
-        <h2 className="mb-2 text-micro uppercase text-ink-muted">{label}</h2>
+        <h2 className="mb-2 text-micro text-ink-muted">{label}</h2>
       )}
       <div className="grid grid-cols-1 divide-y divide-rule border border-rule bg-panel sm:grid-cols-3 sm:divide-x sm:divide-y-0">
         {items.map((item, i) => {

@@ -27,7 +27,7 @@ export function Countdown({
   if (days === 0) {
     return (
       <span className={`inline-flex flex-col ${className}`}>
-        <span className={`font-mono uppercase tabular-nums text-danger ${figureSize}`}>Today</span>
+        <span className={`font-mono tabular-nums text-danger ${figureSize}`}>Today</span>
         <span className="text-meta text-ink-muted">event day</span>
       </span>
     );

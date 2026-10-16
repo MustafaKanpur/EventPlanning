@@ -6,7 +6,8 @@ import { IconGitHub } from "./icon";
 export type NavItem = { label: string; href: string };
 
 /**
- * Nav for the light chrome bar.
+ * Nav for the dark chrome bar. The yellow marker under the active section is the one
+ * loud element in the system; nothing else uses `highlight`.
  *
  * NOTE: the brief lists Events · Vendors · People · Templates. Vendors still has no
  * route (they live inside a budget line), and Templates arrives with step 7. Both are
@@ -38,11 +39,11 @@ export function TopBar({
   const initials = initialsFrom(user?.name, user?.email);
 
   return (
-    <header className="h-bar border-b border-rule bg-panel">
+    <header className="h-bar bg-ink text-panel">
       <div className="mx-auto flex h-full max-w-6xl items-center justify-between gap-6 px-6">
         <div className="flex items-center gap-8">
           <div className="flex items-center gap-2">
-            <Link href="/dashboard" className="font-display text-[19px] leading-none text-ink">
+            <Link href="/dashboard" className="font-display text-[22px] leading-none tracking-[0.01em] text-panel">
               Event Planning
             </Link>
             <a
@@ -51,7 +52,7 @@ export function TopBar({
               rel="noopener noreferrer"
               aria-label="Source code on GitHub"
               title="Source on GitHub"
-              className="flex h-11 w-9 items-center justify-center text-ink-muted transition-colors hover:text-ink"
+              className="flex h-11 w-9 items-center justify-center text-panel/60 transition-colors hover:text-panel"
             >
               <IconGitHub size={16} />
             </a>
@@ -65,8 +66,8 @@ export function TopBar({
                     <Link
                       href={item.href}
                       aria-current={active ? "page" : undefined}
-                      className={`text-ui transition-colors hover:text-ink ${
-                        active ? "text-ink" : "text-ink-muted"
+                      className={`flex h-bar items-center border-b-[3px] pt-[3px] text-ui transition-colors hover:text-panel ${
+                        active ? "border-highlight text-panel" : "border-transparent text-panel/65"
                       }`}
                     >
                       {item.label}
@@ -81,7 +82,7 @@ export function TopBar({
         <div className="flex items-center gap-4">
           <time
             dateTime={today.toISOString().slice(0, 10)}
-            className="hidden font-mono text-caption tabular-nums text-ink-muted sm:block"
+            className="hidden font-mono text-caption tabular-nums text-panel/65 sm:block"
           >
             {formatShortDate(today)}
           </time>
@@ -89,7 +90,7 @@ export function TopBar({
           <span
             // The bar used to print the raw gmail address; initials keep it quiet,
             // with the full identity still available to assistive tech.
-            className="flex h-[30px] w-[30px] items-center justify-center rounded-full border border-rule bg-panel-alt text-[11px] font-medium text-ink"
+            className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-panel/15 text-[11px] font-semibold text-panel"
             title={user?.name ?? user?.email ?? undefined}
           >
             <span aria-hidden="true">{initials}</span>

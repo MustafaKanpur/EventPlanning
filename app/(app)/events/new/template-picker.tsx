@@ -57,7 +57,7 @@ export function TemplatePicker({
                 </span>
               )}
               {!template.isBuiltIn && (
-                <span className="mt-1 block text-micro uppercase text-accent">Your template</span>
+                <span className="mt-1 block text-micro text-accent">Your template</span>
               )}
             </button>
           );

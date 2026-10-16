@@ -103,7 +103,7 @@ export default async function PeoplePage({ params }: { params: { eventId: string
                 <th
                   key={label || i}
                   scope="col"
-                  className={`px-4 text-micro font-medium uppercase text-ink-muted ${
+                  className={`px-4 text-micro font-medium text-ink-muted ${
                     i === 3 ? "text-right" : ""
                   }`}
                 >
@@ -192,7 +192,7 @@ export default async function PeoplePage({ params }: { params: { eventId: string
 
       {canManage && (
       <section>
-        <h2 className="mb-2 text-micro uppercase text-ink-muted">Staff someone else</h2>
+        <h2 className="mb-2 text-micro text-ink-muted">Staff someone else</h2>
         {available.length === 0 ? (
           <p className="text-[13px] text-ink-muted">
             Everyone on the roster is already on this event.{" "}

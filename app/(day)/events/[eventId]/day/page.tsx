@@ -136,7 +136,7 @@ export default async function DayOfPage({ params }: { params: { eventId: string 
       <section aria-label="Happening now">
         {state.now ? (
           <div className="border border-ink bg-panel p-4">
-            <p className="text-micro uppercase text-ink-muted">Now</p>
+            <p className="text-micro text-ink-muted">Now</p>
             <p className="mt-2 font-display text-[26px] font-normal leading-tight text-ink">
               {state.now.title}
             </p>
@@ -162,7 +162,7 @@ export default async function DayOfPage({ params }: { params: { eventId: string 
           </div>
         ) : (
           <div className="border border-rule bg-panel p-4">
-            <p className="text-micro uppercase text-ink-muted">Now</p>
+            <p className="text-micro text-ink-muted">Now</p>
             <p className="mt-2 text-[15px] text-ink">
               {state.next
                 ? "Nothing running — the next block hasn't started."
@@ -176,7 +176,7 @@ export default async function DayOfPage({ params }: { params: { eventId: string 
 
       {state.next && (
         <section aria-label="Up next" className="border border-rule bg-panel p-4">
-          <p className="text-micro uppercase text-ink-muted">Up next</p>
+          <p className="text-micro text-ink-muted">Up next</p>
           <div className="mt-2 flex items-baseline justify-between gap-3">
             <div className="min-w-0">
               <p className="text-[17px] text-ink">{state.next.title}</p>
@@ -204,7 +204,7 @@ export default async function DayOfPage({ params }: { params: { eventId: string 
 
       {state.later.length > 0 && (
         <section aria-label="Rest of the day">
-          <h2 className="mb-2 text-micro uppercase text-ink-muted">Rest of the day</h2>
+          <h2 className="mb-2 text-micro text-ink-muted">Rest of the day</h2>
           <ul className="divide-y divide-rule-soft border border-rule bg-panel">
             {state.later.map((block) => (
               <li key={block.id} className="flex items-center gap-3 px-3 py-3">
@@ -230,7 +230,7 @@ export default async function DayOfPage({ params }: { params: { eventId: string 
 
       {state.done.length > 0 && (
         <section aria-label="Already done">
-          <h2 className="mb-2 text-micro uppercase text-ink-muted">Done</h2>
+          <h2 className="mb-2 text-micro text-ink-muted">Done</h2>
           <ul className="divide-y divide-rule-soft border border-rule bg-panel">
             {state.done.map((block) => (
               <li key={block.id} className="flex items-center gap-3 px-3 py-2.5">
@@ -264,14 +264,14 @@ export default async function DayOfPage({ params }: { params: { eventId: string 
                     href={`tel:${contact.phone.replace(/\s+/g, "")}`}
                     className="flex h-14 flex-col justify-center px-3 transition-colors hover:bg-panel-alt"
                   >
-                    <span className="truncate text-micro uppercase text-ink-muted">
+                    <span className="truncate text-micro text-ink-muted">
                       {contact.label}
                     </span>
                     <span className="truncate text-[13px] text-accent">{contact.name}</span>
                   </a>
                 ) : (
                   <span className="flex h-14 flex-col justify-center px-3">
-                    <span className="truncate text-micro uppercase text-ink-muted">
+                    <span className="truncate text-micro text-ink-muted">
                       {contact.label}
                     </span>
                     <span className="truncate text-[13px] text-ink-muted">

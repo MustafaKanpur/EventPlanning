@@ -1,30 +1,23 @@
 import type { Metadata } from "next";
-import { Archivo, Instrument_Serif, JetBrains_Mono } from "next/font/google";
+import { Big_Shoulders_Display, Public_Sans } from "next/font/google";
 import "./globals.css";
 
 import { PendingBar } from "@/components/pending-bar";
 import { AuthProvider } from "@/components/providers/auth-provider";
 
-// UI / body.
-const archivo = Archivo({
+// UI, body and every figure (set tabular in globals.css).
+const publicSans = Public_Sans({
   subsets: ["latin"],
-  variable: "--font-archivo",
+  variable: "--font-public-sans",
   display: "swap",
 });
 
-// Display: page titles and big figures. Instrument Serif ships a single weight —
-// the design calls for 400 throughout, never bold.
-const instrumentSerif = Instrument_Serif({
+// Display: page titles and big figures. Loaded at 700 only, so the `font-normal`
+// left on display headings still resolves to the one bold cut — signage, not a serif.
+const bigShoulders = Big_Shoulders_Display({
   subsets: ["latin"],
-  weight: "400",
-  variable: "--font-instrument-serif",
-  display: "swap",
-});
-
-// Everything that sits in a column: times, money, counts, ids.
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-jetbrains-mono",
+  weight: "700",
+  variable: "--font-big-shoulders",
   display: "swap",
 });
 
@@ -41,7 +34,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${archivo.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable} bg-ground font-sans text-ink antialiased`}
+        className={`${publicSans.variable} ${bigShoulders.variable} bg-ground font-sans text-ink antialiased`}
       >
         <AuthProvider>{children}</AuthProvider>
         <PendingBar />

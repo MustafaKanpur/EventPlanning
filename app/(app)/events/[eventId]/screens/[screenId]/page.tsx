@@ -44,7 +44,7 @@ export default async function ScreenPage({
             {screen.icon ? `${screen.icon} ` : ""}
             {screen.name}
           </h2>
-          <p className="mt-1.5 text-meta uppercase tracking-[0.09em] text-ink-muted">
+          <p className="mt-1.5 text-meta tracking-[0.09em] text-ink-muted">
             {screen.viewType.toLowerCase()} · {screen.fields.length} field
             {screen.fields.length === 1 ? "" : "s"}
             {screen.isSystem && " · default screen"}

@@ -84,7 +84,7 @@ export function ViewPreview({
         {columns.map((column, i) => (
           <div key={column.value} className={`${wrap} w-1/3 p-2`}>
             <span
-              className={`inline-block px-1.5 py-0.5 text-micro uppercase ${
+              className={`inline-block px-1.5 py-0.5 text-micro ${
                 OPTION_COLOR_CLASSES[column.color] ?? "bg-panel-alt text-ink-muted"
               }`}
             >
@@ -171,7 +171,7 @@ export function ViewPreview({
             {shown.slice(0, 4).map((f) => (
               <th
                 key={f.key}
-                className={`px-2 py-1.5 text-micro uppercase text-ink-muted ${
+                className={`px-2 py-1.5 text-micro text-ink-muted ${
                   f.type === "CURRENCY" ? "text-right" : ""
                 }`}
               >
