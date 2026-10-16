@@ -3,7 +3,7 @@ import type { Volunteer } from "@prisma/client";
 import { GENDERS, dateInputValue } from "@/lib/volunteers";
 
 const input =
-  "w-full rounded-[3px] border border-rule bg-panel px-3 py-2 text-sm focus:border-accent focus:outline-none";
+  "w-full rounded-md border border-rule bg-panel px-3 py-2 text-sm focus:border-accent focus:outline-none";
 
 /** Name, contact and eligibility details. Parsed by readVolunteerForm. */
 export function VolunteerFields({

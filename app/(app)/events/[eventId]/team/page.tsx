@@ -14,7 +14,7 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 const field =
-  "h-11 border border-rule bg-panel px-3 text-[13px] text-ink focus:border-accent focus:outline-none";
+  "rounded-md h-11 border border-rule bg-panel px-3 text-[13px] text-ink focus:border-accent focus:outline-none";
 
 /** "4 tasks · 2 run-of-show blocks" — what this person is actually carrying. */
 function ownership(taskCount: number, blockCount: number): string {
@@ -95,7 +95,7 @@ export default async function PeoplePage({ params }: { params: { eventId: string
 
   return (
     <div className="space-y-8">
-      <div className="overflow-x-auto border border-rule bg-panel">
+      <div className="rounded-lg overflow-x-auto border border-rule bg-panel">
         <table className="w-full border-collapse text-left">
           <thead>
             <tr className="h-head border-b border-rule bg-panel-alt">
@@ -231,7 +231,7 @@ export default async function PeoplePage({ params }: { params: { eventId: string
             </div>
             <button
               type="submit"
-              className="h-11 bg-accent px-4 text-ui text-panel transition-opacity hover:opacity-90"
+              className="rounded-md h-11 bg-accent px-4 text-ui text-panel transition-opacity hover:opacity-90"
             >
               Add to event
             </button>

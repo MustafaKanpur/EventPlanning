@@ -3,7 +3,7 @@ import type { FieldDefinition } from "@prisma/client";
 import { choicesOf } from "@/lib/registration-form";
 
 const input =
-  "w-full rounded-[3px] border border-rule px-3 py-2 text-sm focus:border-accent focus:outline-none";
+  "w-full rounded-md border border-rule px-3 py-2 text-sm focus:border-accent focus:outline-none";
 
 /**
  * The organiser's own questions, rendered from their field definitions. Everything here

@@ -6,7 +6,7 @@ export function NamesOnly({ heading, names }: { heading: string; names: string[]
       {names.length === 0 ? (
         <p className="text-[13px] text-ink-muted">Nobody yet.</p>
       ) : (
-        <ul className="divide-y divide-rule-soft border border-rule bg-panel">
+        <ul className="rounded-lg overflow-hidden divide-y divide-rule-soft border border-rule bg-panel">
           {names.map((name, i) => (
             <li key={i} className="px-4 py-2 text-[13px] text-ink">
               {name}

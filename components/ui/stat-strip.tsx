@@ -34,25 +34,25 @@ export function StatStrip({
       {label && (
         <h2 className="mb-2 text-micro text-ink-muted">{label}</h2>
       )}
-      <div className="grid grid-cols-1 divide-y divide-rule border border-rule bg-panel sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+      <div className="rounded-lg overflow-hidden grid grid-cols-1 divide-y divide-rule border border-rule bg-panel sm:grid-cols-3 sm:divide-x sm:divide-y-0">
         {items.map((item, i) => {
           const body = (
             <>
               <span
-                className={`font-mono text-[26px] leading-none tabular-nums ${
+                className={`font-display text-[40px] leading-none ${
                   FIGURE_TONE[item.tone ?? "neutral"]
                 }`}
               >
                 {item.figure}
               </span>
-              <span className="mt-2 block text-caption text-ink-muted">{item.caption}</span>
+              <span className="mt-2.5 block text-caption text-ink-muted">{item.caption}</span>
             </>
           );
           return item.href ? (
             <a
               key={i}
               href={item.href}
-              className="block px-5 py-4 transition-colors hover:bg-panel-alt"
+              className="group block px-5 py-4 transition-colors hover:bg-panel-alt"
             >
               {body}
             </a>

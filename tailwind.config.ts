@@ -7,21 +7,20 @@ const config: Config = {
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
-    // Overridden, not extended: capping the scale at 3px is how the "no pill cards"
-    // rule is actually enforced — `rounded-xl` left over in a page clamps to 3px
-    // instead of quietly staying round. `full` survives for dots and avatars.
+    // Two radii carry the hierarchy: 10px for panels, 6px for the controls inside them.
+    // Overridden rather than extended so a stray `rounded-2xl` can't drift past 14px.
     borderRadius: {
       none: "0",
-      sm: "2px",
-      DEFAULT: "3px",
-      md: "3px",
-      lg: "3px",
-      xl: "3px",
-      "2xl": "3px",
-      "3xl": "3px",
+      sm: "4px",
+      DEFAULT: "6px",
+      md: "6px",
+      lg: "10px",
+      xl: "14px",
+      "2xl": "14px",
+      "3xl": "14px",
       full: "9999px",
     },
-    // Same reasoning: the system is borders, not shadows. Any `shadow-*` still in the
+    // The system is borders, not shadows. Any `shadow-*` still in the
     // codebase resolves to nothing rather than reintroducing float.
     boxShadow: {
       none: "none",

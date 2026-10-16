@@ -35,7 +35,7 @@ export default async function TemplatesPage() {
           !readOnly && (
             <Link
               href="/events/new"
-              className="flex h-11 items-center border border-rule px-3 text-ui text-ink transition-colors hover:bg-panel-alt"
+              className="rounded-md flex h-11 items-center border border-rule px-3 text-ui text-ink transition-colors hover:bg-panel-alt"
             >
               + Create event
             </Link>
@@ -43,7 +43,7 @@ export default async function TemplatesPage() {
         }
       />
 
-      <div className="overflow-x-auto border border-rule bg-panel">
+      <div className="rounded-lg overflow-x-auto border border-rule bg-panel">
         <table className="w-full border-collapse text-left">
           <thead>
             <tr className="h-head border-b border-rule bg-panel-alt">

@@ -4,10 +4,10 @@ import { deleteScreen } from "./actions";
 export function DeleteScreenButton({ eventId, screenId }: { eventId: string; screenId: string }) {
   return (
     <details className="relative">
-      <summary className="flex h-11 cursor-pointer list-none items-center border border-rule px-3 text-ui text-danger transition-colors hover:bg-panel-alt">
+      <summary className="rounded-md flex h-11 cursor-pointer list-none items-center border border-rule px-3 text-ui text-danger transition-colors hover:bg-panel-alt">
         Delete screen
       </summary>
-      <div className="absolute left-0 z-10 mt-1 w-72 border border-rule bg-panel p-4">
+      <div className="rounded-lg absolute left-0 z-10 mt-1 w-72 border border-rule bg-panel p-4">
         <p className="text-[13px] text-ink">
           Delete this screen, its fields and every record on it? This can&apos;t be undone.
         </p>

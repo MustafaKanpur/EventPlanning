@@ -10,7 +10,7 @@ import { CopyLink } from "../registrants/copy-link";
 import { addSignup, createShift, deleteShift, removeSignup } from "./actions";
 
 const input =
-  "w-full border border-rule bg-panel px-3 py-2 text-[13px] text-ink focus:border-accent focus:outline-none";
+  "rounded-md w-full border border-rule bg-panel px-3 py-2 text-[13px] text-ink focus:border-accent focus:outline-none";
 
 export default async function EventVolunteersPage({ params }: { params: { eventId: string } }) {
   const { eventId } = params;
@@ -70,7 +70,7 @@ export default async function EventVolunteersPage({ params }: { params: { eventI
             const onShift = new Set(shift.signups.map((signup) => signup.volunteer.id));
             const available = volunteers.filter((v) => !onShift.has(v.id));
             return (
-              <section key={shift.id} className="border border-rule bg-panel">
+              <section key={shift.id} className="rounded-lg border border-rule bg-panel">
                 <div className="flex flex-wrap items-start justify-between gap-3 border-b border-rule-soft px-4 py-3">
                   <div>
                     <h2 className="text-[14px] font-medium text-ink">{shift.title}</h2>
@@ -192,7 +192,7 @@ export default async function EventVolunteersPage({ params }: { params: { eventI
             <input id="s-hours" name="minHours" type="number" min="0" className={input} />
           </div>
           <div className="sm:col-span-4">
-            <button type="submit" className="h-11 bg-accent px-4 text-ui text-panel transition-opacity hover:opacity-90">
+            <button type="submit" className="rounded-md h-11 bg-accent px-4 text-ui text-panel transition-opacity hover:opacity-90">
               Add shift
             </button>
           </div>

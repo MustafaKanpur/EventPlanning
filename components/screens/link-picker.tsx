@@ -89,7 +89,7 @@ export function LinkPicker({
       </button>
 
       {open && (
-        <div className="absolute left-0 z-30 mt-1 w-64 border border-rule bg-panel">
+        <div className="rounded-lg absolute left-0 z-30 mt-1 w-64 border border-rule bg-panel">
           <input
             autoFocus
             value={query}

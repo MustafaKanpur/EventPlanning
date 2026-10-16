@@ -19,7 +19,7 @@ import { CopyLink } from "./copy-link";
 
 const STATUS_OPTIONS = ["UNPAID", "PENDING", "PAID", "REFUNDED"] as const;
 const field =
-  "w-full border border-rule bg-panel px-3 py-2 text-[13px] text-ink focus:border-accent focus:outline-none";
+  "rounded-md w-full border border-rule bg-panel px-3 py-2 text-[13px] text-ink focus:border-accent focus:outline-none";
 
 /** Unpaid first — they're the ones needing chasing — then by newest registration. */
 const SORT_WEIGHT: Record<string, number> = { UNPAID: 0, PENDING: 1, PAID: 2, REFUNDED: 3 };
@@ -155,7 +155,7 @@ export default async function RegistrationPage({
                     id={id}
                     name={filterParam(f)}
                     defaultValue={current}
-                    className="h-11 border border-rule bg-panel px-2 text-[13px] text-ink focus:border-accent focus:outline-none"
+                    className="rounded-md h-11 border border-rule bg-panel px-2 text-[13px] text-ink focus:border-accent focus:outline-none"
                   >
                     <option value="">Any</option>
                     {choicesOf(f).map((c) => (
@@ -177,7 +177,7 @@ export default async function RegistrationPage({
                     id={id}
                     name={filterParam(f)}
                     defaultValue={current}
-                    className="h-11 border border-rule bg-panel px-2 text-[13px] text-ink focus:border-accent focus:outline-none"
+                    className="rounded-md h-11 border border-rule bg-panel px-2 text-[13px] text-ink focus:border-accent focus:outline-none"
                   >
                     <option value="">Any</option>
                     <option value="yes">Yes</option>
@@ -196,14 +196,14 @@ export default async function RegistrationPage({
                   name={filterParam(f)}
                   defaultValue={current}
                   placeholder="Contains…"
-                  className="h-11 w-40 border border-rule bg-panel px-2 text-[13px] text-ink focus:border-accent focus:outline-none"
+                  className="rounded-md h-11 w-40 border border-rule bg-panel px-2 text-[13px] text-ink focus:border-accent focus:outline-none"
                 />
               </div>
             );
           })}
           <button
             type="submit"
-            className="h-11 border border-rule px-3 text-ui text-ink transition-colors hover:bg-panel-alt"
+            className="rounded-md h-11 border border-rule px-3 text-ui text-ink transition-colors hover:bg-panel-alt"
           >
             Apply
           </button>
@@ -218,7 +218,7 @@ export default async function RegistrationPage({
         </form>
       )}
 
-      <div className="overflow-x-auto border border-rule bg-panel">
+      <div className="rounded-lg overflow-x-auto border border-rule bg-panel">
         <table className="w-full border-collapse text-left">
           <thead>
             <tr className="h-head border-b border-rule bg-panel-alt">
@@ -318,7 +318,7 @@ export default async function RegistrationPage({
                           />
                           <button
                             type="submit"
-                            className="h-11 w-full bg-accent text-ui text-panel transition-opacity hover:opacity-90"
+                            className="rounded-md h-11 w-full bg-accent text-ui text-panel transition-opacity hover:opacity-90"
                           >
                             Save
                           </button>
@@ -362,7 +362,7 @@ export default async function RegistrationPage({
                           id={`status-${registrant.id}`}
                           name="paymentStatus"
                           defaultValue={registrant.paymentStatus}
-                          className="h-11 border border-rule bg-panel px-2 text-caption text-ink focus:border-accent focus:outline-none"
+                          className="rounded-md h-11 border border-rule bg-panel px-2 text-caption text-ink focus:border-accent focus:outline-none"
                         >
                           {STATUS_OPTIONS.map((s) => (
                             <option key={s} value={s}>
@@ -377,7 +377,7 @@ export default async function RegistrationPage({
                           id={`line-${registrant.id}`}
                           name="budgetLineId"
                           defaultValue={registrant.budgetLineId ?? ""}
-                          className="h-11 border border-rule bg-panel px-2 text-caption text-ink focus:border-accent focus:outline-none"
+                          className="rounded-md h-11 border border-rule bg-panel px-2 text-caption text-ink focus:border-accent focus:outline-none"
                         >
                           <option value="">No line</option>
                           {budgetLines.map((line) => (

@@ -20,7 +20,7 @@ export function AppChrome({ user }: { user: { name?: string | null; email?: stri
     <TopBar
       user={user}
       activeHref={active?.href}
-      actions={<SignOutButton />}
+      actions={<SignOutButton onDark />}
     />
   );
 }

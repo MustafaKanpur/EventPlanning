@@ -37,7 +37,7 @@ export type RenderableScreen = ScreenDefinition & {
 };
 
 const field =
-  "w-full border border-rule bg-panel px-3 py-2 text-[13px] text-ink focus:border-accent focus:outline-none";
+  "rounded-md w-full border border-rule bg-panel px-3 py-2 text-[13px] text-ink focus:border-accent focus:outline-none";
 
 /**
  * Renders a composed screen according to its view type. TABLE and CHECKLIST are built;
@@ -155,14 +155,14 @@ function MissingFieldPrompt({
     requirement.suggestType,
   );
   return (
-    <div className="border border-rule bg-panel px-4 py-8">
+    <div className="rounded-lg border border-rule bg-panel px-4 py-8">
       <p className="text-[13px] text-ink">
         A {screen.viewType.toLowerCase()} needs {requirement.need}.
       </p>
       <form action={add} className="mt-3">
         <button
           type="submit"
-          className="h-11 bg-accent px-4 text-ui text-panel transition-opacity hover:opacity-90"
+          className="rounded-md h-11 bg-accent px-4 text-ui text-panel transition-opacity hover:opacity-90"
         >
           Add a “{requirement.suggestLabel}” field
         </button>
@@ -204,14 +204,14 @@ function AddRecordForm({
       <summary className="cursor-pointer list-none text-ui text-ink-muted transition-colors hover:text-ink">
         {label}
       </summary>
-      <form action={add} className="mt-2 flex flex-wrap items-end gap-2 border border-rule bg-panel p-3">
+      <form action={add} className="rounded-lg mt-2 flex flex-wrap items-end gap-2 border border-rule bg-panel p-3">
         {editable.map((f) => (
           <div key={f.id} className="space-y-1">
             <label className="block text-caption text-ink-muted" htmlFor={`new-${screen.id}-${f.key}`}>
               {f.label}
             </label>
             {f.type === "LINK" || f.type === "PERSON" ? (
-              <div className="w-44 border border-rule">
+              <div className="rounded-lg w-44 border border-rule">
                 <LinkPicker
                   options={optionsFor(f, linkOptions)}
                   value=""
@@ -250,7 +250,7 @@ function AddRecordForm({
         ))}
         <button
           type="submit"
-          className="h-11 bg-accent px-4 text-ui text-panel transition-opacity hover:opacity-90"
+          className="rounded-md h-11 bg-accent px-4 text-ui text-panel transition-opacity hover:opacity-90"
         >
           Add
         </button>
@@ -278,7 +278,7 @@ function TableView({
         <AddRecordForm eventId={eventId} screen={screen} linkOptions={linkOptions} />
       </div>
 
-      <div className="overflow-x-auto border border-rule bg-panel">
+      <div className="rounded-lg overflow-x-auto border border-rule bg-panel">
         <table className="w-full border-collapse text-left">
           <thead>
             <tr className="h-head border-b border-rule bg-panel-alt">
@@ -388,7 +388,7 @@ function ChecklistView({
         <AddRecordForm eventId={eventId} screen={screen} linkOptions={linkOptions} label="+ Add item" />
       </div>
 
-      <div className="border border-rule bg-panel">
+      <div className="rounded-lg border border-rule bg-panel">
         {screen.records.length === 0 ? (
           <p className="px-4 py-10 text-[13px] text-ink-muted">
             Nothing on this checklist yet. Add the first item above.

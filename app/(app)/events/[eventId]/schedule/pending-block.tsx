@@ -118,7 +118,7 @@ export function PendingBlock({
               type="button"
               disabled={isPending}
               onClick={() => decide(rejectDraftBlock)}
-              className="h-11 flex-1 border border-rule text-ui text-ink transition-colors hover:bg-panel-alt disabled:opacity-50"
+              className="rounded-md h-11 flex-1 border border-rule text-ui text-ink transition-colors hover:bg-panel-alt disabled:opacity-50"
             >
               Reject
             </button>

@@ -11,7 +11,7 @@ import { createEvent } from "./actions";
 import { TemplatePicker } from "./template-picker";
 
 const field =
-  "w-full border border-rule bg-panel px-3 py-2 text-[14px] text-ink focus:border-accent focus:outline-none";
+  "rounded-md w-full border border-rule bg-panel px-3 py-2 text-[14px] text-ink focus:border-accent focus:outline-none";
 const label = "mb-1 block text-[12.5px] text-ink-muted";
 
 export default async function NewEventPage({
@@ -110,7 +110,7 @@ export default async function NewEventPage({
         <div className="flex items-center gap-4 border-t border-rule pt-5">
           <button
             type="submit"
-            className="h-11 bg-accent px-4 text-ui text-panel transition-opacity hover:opacity-90"
+            className="rounded-md h-11 bg-accent px-4 text-ui text-panel transition-opacity hover:opacity-90"
           >
             Create event
           </button>

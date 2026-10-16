@@ -12,7 +12,7 @@ import { CopyLink } from "@/app/(app)/events/[eventId]/registrants/copy-link";
 import { addVolunteer, approveHours, approveVolunteer } from "./actions";
 
 const button =
-  "rounded-[3px] bg-accent px-3 py-1.5 text-xs font-medium text-panel transition hover:opacity-90";
+  "rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-panel transition hover:opacity-90";
 
 export default async function VolunteersPage() {
   // Demo visitors see only their fake volunteers; real staff never see those.
@@ -55,7 +55,7 @@ export default async function VolunteersPage() {
         </div>
       </div>
 
-      <details className="rounded-[3px] border border-rule bg-panel">
+      <details className="rounded-md border border-rule bg-panel">
         <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium text-ink hover:bg-panel-alt">
           + Add volunteer
         </summary>
@@ -70,7 +70,7 @@ export default async function VolunteersPage() {
               name="joinedAt"
               type="date"
               defaultValue={dateInputValue(new Date())}
-              className="w-full rounded-[3px] border border-rule bg-panel px-3 py-2 text-sm focus:border-accent focus:outline-none"
+              className="w-full rounded-md border border-rule bg-panel px-3 py-2 text-sm focus:border-accent focus:outline-none"
             />
           </div>
           <div className="sm:col-span-3">
@@ -84,7 +84,7 @@ export default async function VolunteersPage() {
       {pendingHours.length > 0 && (
         <section className="space-y-2">
           <h2 className="text-micro text-ink-muted">Hours awaiting approval</h2>
-          <div className="divide-y divide-rule rounded-[3px] border border-rule bg-panel">
+          <div className="divide-y divide-rule rounded-md border border-rule bg-panel">
             {pendingHours.map((entry) => (
               <div key={entry.id} className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
                 <p className="text-ink">
@@ -106,11 +106,11 @@ export default async function VolunteersPage() {
       )}
 
       {volunteers.length === 0 ? (
-        <div className="rounded-[3px] border border-rule bg-panel px-4 py-10">
+        <div className="rounded-md border border-rule bg-panel px-4 py-10">
           <p className="text-ink-muted">No volunteers yet. Share the sign-up link, or add someone above.</p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-[3px] border border-rule bg-panel">
+        <div className="overflow-x-auto rounded-md border border-rule bg-panel">
           <table className="w-full border-collapse text-left text-sm">
             <thead>
               <tr className="border-b border-rule bg-panel-alt">

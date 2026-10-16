@@ -39,11 +39,11 @@ export default async function PublicRegistrationPage({
         </div>
 
         {event.status === "CANCELLED" ? (
-          <p className="rounded-[3px] bg-panel-alt px-4 py-3 text-center text-sm text-danger">
+          <p className="rounded-md bg-panel-alt px-4 py-3 text-center text-sm text-danger">
             This event has been cancelled. Registration is closed.
           </p>
         ) : submitted ? (
-          <p className="border border-rule bg-panel-alt px-4 py-3 text-center text-sm text-ink">
+          <p className="rounded-lg border border-rule bg-panel-alt px-4 py-3 text-center text-sm text-ink">
             You&apos;re registered.
           </p>
         ) : (
@@ -66,7 +66,7 @@ export default async function PublicRegistrationPage({
                 name="name"
                 type="text"
                 required
-                className="w-full rounded-[3px] border border-rule px-3 py-2 text-sm focus:border-accent focus:outline-none "
+                className="w-full rounded-md border border-rule px-3 py-2 text-sm focus:border-accent focus:outline-none "
               />
             </div>
 
@@ -79,7 +79,7 @@ export default async function PublicRegistrationPage({
                 name="email"
                 type="email"
                 required
-                className="w-full rounded-[3px] border border-rule px-3 py-2 text-sm focus:border-accent focus:outline-none "
+                className="w-full rounded-md border border-rule px-3 py-2 text-sm focus:border-accent focus:outline-none "
               />
             </div>
 
@@ -98,7 +98,7 @@ export default async function PublicRegistrationPage({
                   min="0"
                   step="0.01"
                   placeholder="75"
-                  className="w-full rounded-[3px] border border-rule py-2 pl-7 pr-3 text-sm focus:border-accent focus:outline-none "
+                  className="w-full rounded-md border border-rule py-2 pl-7 pr-3 text-sm focus:border-accent focus:outline-none "
                 />
               </div>
             </div>
@@ -107,7 +107,7 @@ export default async function PublicRegistrationPage({
 
             <button
               type="submit"
-              className="w-full rounded-[3px] bg-accent px-4 py-2 text-sm font-medium text-panel transition hover:opacity-90"
+              className="w-full rounded-md bg-accent px-4 py-2 text-sm font-medium text-panel transition hover:opacity-90"
             >
               Register
             </button>

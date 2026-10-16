@@ -21,9 +21,9 @@ import {
 } from "./actions";
 
 const field =
-  "w-full border border-rule bg-panel px-3 py-2 text-[13px] text-ink focus:border-accent focus:outline-none";
+  "rounded-md w-full border border-rule bg-panel px-3 py-2 text-[13px] text-ink focus:border-accent focus:outline-none";
 const textButton = "text-ui text-ink-muted transition-colors hover:text-ink";
-const smallButton = "h-11 border border-rule px-3 text-ui text-ink transition-colors hover:bg-panel-alt";
+const smallButton = "rounded-md h-11 border border-rule px-3 text-ui text-ink transition-colors hover:bg-panel-alt";
 
 const COLUMNS = [
   { key: "category", label: "Category" },
@@ -106,7 +106,7 @@ export default async function BudgetPage({ params }: { params: { eventId: string
             <summary className={`cursor-pointer list-none ${textButton}`}>+ Add category</summary>
             <form
               action={addLine}
-              className="absolute right-0 z-20 mt-2 w-80 space-y-2 border border-rule bg-panel p-4"
+              className="rounded-lg absolute right-0 z-20 mt-2 w-80 space-y-2 border border-rule bg-panel p-4"
             >
               <div className="space-y-1">
                 <label className="block text-caption text-ink-muted" htmlFor="new-category">
@@ -131,7 +131,7 @@ export default async function BudgetPage({ params }: { params: { eventId: string
               <textarea name="notes" rows={2} placeholder="Notes (optional)" className={field} />
               <button
                 type="submit"
-                className="h-11 w-full bg-accent text-ui text-panel transition-opacity hover:opacity-90"
+                className="rounded-md h-11 w-full bg-accent text-ui text-panel transition-opacity hover:opacity-90"
               >
                 Add category
               </button>
@@ -140,7 +140,7 @@ export default async function BudgetPage({ params }: { params: { eventId: string
           )}
         </div>
 
-        <div className="overflow-x-auto border border-rule bg-panel">
+        <div className="rounded-lg overflow-x-auto border border-rule bg-panel">
           <table className="w-full border-collapse text-left">
             <thead>
               <tr className="h-head border-b border-rule bg-panel-alt">

@@ -27,7 +27,7 @@ export function ShareEventButton() {
     <button
       type="button"
       onClick={copy}
-      className="flex h-11 items-center gap-2 border border-rule px-3 text-ui text-ink transition-colors hover:bg-panel-alt"
+      className="rounded-md flex h-11 items-center gap-2 border border-rule px-3 text-ui text-ink transition-colors hover:bg-panel-alt"
     >
       {state === "copied" ? <IconCheck size={15} /> : <IconShare size={15} />}
       <span aria-live="polite">

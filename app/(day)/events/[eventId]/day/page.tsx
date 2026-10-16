@@ -119,7 +119,7 @@ export default async function DayOfPage({ params }: { params: { eventId: string 
         >
           ← Full run of show
         </Link>
-        <h1 className="mt-2 font-display text-[30px] font-normal leading-tight text-ink">
+        <h1 className="mt-2 font-display text-[38px] leading-none text-ink">
           {event.name}
         </h1>
         <p className="mt-1 font-mono text-caption tabular-nums text-ink-muted">
@@ -127,7 +127,7 @@ export default async function DayOfPage({ params }: { params: { eventId: string 
           {formatLongDate(event.eventDate)}
         </p>
         {!today && (
-          <p className="mt-2 border border-rule bg-panel-alt px-3 py-2 text-caption text-ink">
+          <p className="rounded-md mt-2 border border-rule bg-panel-alt px-3 py-2 text-caption text-ink">
             This isn&apos;t today. You&apos;re seeing the plan, not a live view.
           </p>
         )}
@@ -135,25 +135,28 @@ export default async function DayOfPage({ params }: { params: { eventId: string 
 
       <section aria-label="Happening now">
         {state.now ? (
-          <div className="border border-ink bg-panel p-4">
-            <p className="text-micro text-ink-muted">Now</p>
-            <p className="mt-2 font-display text-[26px] font-normal leading-tight text-ink">
+          <div className="rounded-lg bg-ink p-5 text-panel">
+            <p className="flex items-center gap-2 text-micro font-semibold text-highlight">
+              <span className="live-dot h-2 w-2 rounded-full bg-highlight" aria-hidden="true" />
+              Now
+            </p>
+            <p className="mt-2 font-display text-[30px] leading-tight">
               {state.now.title}
             </p>
             {state.now.location && (
-              <p className="text-[13px] text-ink-muted">{state.now.location}</p>
+              <p className="text-[13px] text-panel/65">{state.now.location}</p>
             )}
-            <p className="mt-3 font-mono text-[30px] leading-none tabular-nums text-ink">
+            <p className="mt-4 font-display text-[48px] leading-none">
               {formatDuration(state.remainingMinutes ?? 0)}
             </p>
-            <p className="text-meta text-ink-muted">
+            <p className="mt-1 text-meta text-panel/65">
               left · ends {formatTime(state.now.endTime)} · {ownerOf(state.now)}
             </p>
             {!readOnly && (
             <form action={markBlockComplete.bind(null, eventId, state.now.id)} className="mt-4">
               <button
                 type="submit"
-                className="h-12 w-full bg-accent text-ui text-panel transition-opacity hover:opacity-90"
+                className="rounded-md h-12 w-full bg-highlight text-ui font-semibold text-ink transition-opacity hover:opacity-90"
               >
                 Mark complete
               </button>
@@ -161,7 +164,7 @@ export default async function DayOfPage({ params }: { params: { eventId: string 
             )}
           </div>
         ) : (
-          <div className="border border-rule bg-panel p-4">
+          <div className="rounded-lg border border-rule bg-panel p-4">
             <p className="text-micro text-ink-muted">Now</p>
             <p className="mt-2 text-[15px] text-ink">
               {state.next
@@ -175,7 +178,7 @@ export default async function DayOfPage({ params }: { params: { eventId: string 
       </section>
 
       {state.next && (
-        <section aria-label="Up next" className="border border-rule bg-panel p-4">
+        <section aria-label="Up next" className="rounded-lg border border-rule bg-panel p-4">
           <p className="text-micro text-ink-muted">Up next</p>
           <div className="mt-2 flex items-baseline justify-between gap-3">
             <div className="min-w-0">
@@ -185,7 +188,7 @@ export default async function DayOfPage({ params }: { params: { eventId: string 
               )}
               <p className="text-meta text-ink-muted">{ownerOf(state.next)}</p>
             </div>
-            <p className="shrink-0 font-mono text-[20px] tabular-nums text-ink">
+            <p className="shrink-0 font-display text-[30px] leading-none text-ink">
               {formatTime(state.next.startTime)}
             </p>
           </div>
@@ -193,7 +196,7 @@ export default async function DayOfPage({ params }: { params: { eventId: string 
           <form action={markBlockStarted.bind(null, eventId, state.next.id)} className="mt-3">
             <button
               type="submit"
-              className="h-12 w-full border border-rule text-ui text-ink transition-colors hover:bg-panel-alt"
+              className="rounded-md h-12 w-full border border-rule text-ui text-ink transition-colors hover:bg-panel-alt"
             >
               Start now
             </button>
@@ -205,7 +208,7 @@ export default async function DayOfPage({ params }: { params: { eventId: string 
       {state.later.length > 0 && (
         <section aria-label="Rest of the day">
           <h2 className="mb-2 text-micro text-ink-muted">Rest of the day</h2>
-          <ul className="divide-y divide-rule-soft border border-rule bg-panel">
+          <ul className="rounded-lg overflow-hidden divide-y divide-rule-soft border border-rule bg-panel">
             {state.later.map((block) => (
               <li key={block.id} className="flex items-center gap-3 px-3 py-3">
                 <span className="w-14 shrink-0 font-mono text-[14px] tabular-nums text-ink">
@@ -231,7 +234,7 @@ export default async function DayOfPage({ params }: { params: { eventId: string 
       {state.done.length > 0 && (
         <section aria-label="Already done">
           <h2 className="mb-2 text-micro text-ink-muted">Done</h2>
-          <ul className="divide-y divide-rule-soft border border-rule bg-panel">
+          <ul className="rounded-lg overflow-hidden divide-y divide-rule-soft border border-rule bg-panel">
             {state.done.map((block) => (
               <li key={block.id} className="flex items-center gap-3 px-3 py-2.5">
                 <span className="w-14 shrink-0 font-mono text-caption tabular-nums text-ink-muted">

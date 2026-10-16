@@ -21,9 +21,9 @@ import {
 } from "../actions";
 
 const input =
-  "w-full rounded-[3px] border border-rule bg-panel px-3 py-2 text-sm focus:border-accent focus:outline-none";
+  "w-full rounded-md border border-rule bg-panel px-3 py-2 text-sm focus:border-accent focus:outline-none";
 const button =
-  "rounded-[3px] bg-accent px-3 py-1.5 text-xs font-medium text-panel transition hover:opacity-90";
+  "rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-panel transition hover:opacity-90";
 
 export default async function VolunteerProfilePage({ params }: { params: { volunteerId: string } }) {
   const me = await getCurrentTeamMember();
@@ -84,7 +84,7 @@ export default async function VolunteerProfilePage({ params }: { params: { volun
         </p>
       </div>
 
-      <details className="rounded-[3px] border border-rule bg-panel">
+      <details className="rounded-md border border-rule bg-panel">
         <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium text-ink hover:bg-panel-alt">
           Details
         </summary>
@@ -118,7 +118,7 @@ export default async function VolunteerProfilePage({ params }: { params: { volun
         {volunteer.signups.length === 0 ? (
           <p className="text-sm text-ink-muted">Not signed up for any shifts yet.</p>
         ) : (
-          <ul className="divide-y divide-rule rounded-[3px] border border-rule bg-panel">
+          <ul className="divide-y divide-rule rounded-md border border-rule bg-panel">
             {volunteer.signups.map((s) => (
               <li key={s.id} className="px-4 py-3 text-sm text-ink">
                 <Link href={`/events/${s.shift.event.id}/volunteers`} className="hover:text-accent">
@@ -171,7 +171,7 @@ export default async function VolunteerProfilePage({ params }: { params: { volun
         )}
 
         {volunteer.hoursEntries.length > 0 && (
-          <ul className="divide-y divide-rule rounded-[3px] border border-rule bg-panel">
+          <ul className="divide-y divide-rule rounded-md border border-rule bg-panel">
             {volunteer.hoursEntries.map((h) => (
               <li key={h.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm">
                 <p className="text-ink">
@@ -193,7 +193,7 @@ export default async function VolunteerProfilePage({ params }: { params: { volun
                     </summary>
                     <form
                       action={updateHours.bind(null, volunteer.id, h.id)}
-                      className="mt-2 grid w-56 gap-2 rounded-[3px] border border-rule bg-panel-alt p-3"
+                      className="mt-2 grid w-56 gap-2 rounded-md border border-rule bg-panel-alt p-3"
                     >
                       <label className="sr-only" htmlFor={`hours-${h.id}`}>
                         Hours
@@ -233,7 +233,7 @@ export default async function VolunteerProfilePage({ params }: { params: { volun
         <summary className="cursor-pointer list-none text-xs text-ink-muted hover:text-danger">
           Delete volunteer
         </summary>
-        <div className="absolute left-0 z-10 mt-1 w-72 border border-rule bg-panel p-4">
+        <div className="rounded-lg absolute left-0 z-10 mt-1 w-72 border border-rule bg-panel p-4">
           <p className="text-[13px] text-ink">
             Delete {volunteer.name}, their shift sign-ups and every hour entry? This can&apos;t be undone.
           </p>

@@ -13,6 +13,7 @@ import {
 } from "@/lib/records";
 import {
   Countdown,
+  DateStub,
   MicroBar,
   PageHeader,
   StatStrip,
@@ -147,7 +148,7 @@ export default async function DashboardPage() {
   const nextDays = next ? daysUntil(next.event.eventDate, now) : null;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <PageHeader
         title="Events"
         subtitle={
@@ -161,9 +162,9 @@ export default async function DashboardPage() {
           canCreate && (
             <Link
               href="/events/new"
-              className="flex h-11 items-center border border-rule px-3 text-ui text-ink transition-colors hover:bg-panel-alt"
+              className="flex h-11 items-center rounded-md bg-accent px-4 text-ui font-medium text-panel transition-opacity hover:opacity-90"
             >
-              + Create event
+              Create event
             </Link>
           )
         }
@@ -171,129 +172,123 @@ export default async function DashboardPage() {
 
       <StatStrip label="Needs you" items={stats} />
 
-      <div className="overflow-x-auto border border-rule bg-panel">
-        <table className="w-full border-collapse text-left">
-          <thead>
-            <tr className="h-head border-b border-rule bg-panel-alt">
-              {[
-                ["Event", "left"],
-                ["When", "left"],
-                ["Run of show", "left"],
-                ["Registration", "left"],
-                ["Budget", "left"],
-                ["Status", "right"],
-              ].map(([label, align]) => (
-                <th
-                  key={label}
-                  scope="col"
-                  className={`px-4 text-micro font-medium text-ink-muted ${
-                    align === "right" ? "text-right" : "text-left"
-                  }`}
+      <section aria-labelledby="events-heading" className="space-y-3">
+        <h2 id="events-heading" className="text-micro font-medium text-ink-muted">
+          Coming up
+        </h2>
+
+        {rows.length === 0 ? (
+          <div className="rounded-lg border border-dashed border-rule px-6 py-10 text-center">
+            <p className="font-display text-[26px] text-ink">No events yet</p>
+            <p className="mt-1 text-[13px] text-ink-muted">
+              {canCreate ? (
+                <>
+                  <Link href="/events/new" className="text-accent hover:underline">
+                    Create your first event
+                  </Link>{" "}
+                  or start from a template.
+                </>
+              ) : (
+                "Events you're added to will appear here."
+              )}
+            </p>
+          </div>
+        ) : (
+          <ul className="space-y-3">
+            {rows.map((row) => (
+              <li key={row.event.id}>
+                <Link
+                  href={`/events/${row.event.id}/schedule`}
+                  className="group flex rounded-lg border border-rule bg-panel transition-colors hover:border-ink-muted"
                 >
-                  {label}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-rule-soft">
-            {rows.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="px-4 py-10 text-[13px] text-ink-muted">
-                  {canCreate ? (
-                    <>
-                      No events yet.{" "}
-                      <Link href="/events/new" className="text-accent hover:underline">
-                        Create your first one
-                      </Link>{" "}
-                      to get started.
-                    </>
-                  ) : (
-                    "No events yet. Events you're added to will appear here."
-                  )}
-                </td>
-              </tr>
-            ) : (
-              rows.map((row) => (
-                <tr key={row.event.id} className="h-row align-middle">
-                  <td className="px-4 py-3">
-                    <Link
-                      href={`/events/${row.event.id}/schedule`}
-                      className="text-[14px] text-ink hover:text-accent"
-                    >
-                      {row.event.name}
-                    </Link>
-                    <p className="mt-0.5 text-meta text-ink-muted">
-                      {[row.event.venue, displayName(row.event.owner.name, row.event.owner.email)]
-                        .filter(Boolean)
-                        .join(" · ")}
-                    </p>
-                  </td>
-                  <td className="px-4 py-3">
-                    <Countdown date={row.event.eventDate} now={now} size="sm" />
-                  </td>
-                  <td className="w-40 px-4 py-3">
-                    <span className="font-mono text-caption tabular-nums text-ink">
-                      {row.doneTasks}/{row.totalTasks}
-                    </span>
-                    <span className="ml-1 text-meta text-ink-muted">done</span>
-                    <MicroBar
-                      value={row.doneTasks}
-                      max={row.totalTasks}
-                      color="accent"
-                      className="mt-1.5"
+                  <DateStub date={row.event.eventDate} className="py-4" />
+                  <div className="perforation flex min-w-0 flex-1 flex-col gap-4 px-5 py-4 lg:flex-row lg:items-center lg:gap-8">
+                    <div className="min-w-0 lg:w-64 lg:shrink-0">
+                      <p className="truncate text-[16px] font-semibold text-ink group-hover:text-accent">
+                        {row.event.name}
+                      </p>
+                      <p className="mt-0.5 truncate text-meta text-ink-muted">
+                        {[row.event.venue, displayName(row.event.owner.name, row.event.owner.email)]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </p>
+                      <StatusDot
+                        status={row.event.status}
+                        tone={toneForStatus(row.event.status)}
+                        className="mt-2"
+                      />
+                    </div>
+
+                    <dl className="grid flex-1 grid-cols-1 gap-4 sm:grid-cols-3">
+                      <Metric label="Run of show" value={`${row.doneTasks}/${row.totalTasks}`} unit="done">
+                        <MicroBar value={row.doneTasks} max={row.totalTasks} color="accent" />
+                      </Metric>
+                      <Metric
+                        label="Registration"
+                        value={`${row.seats}${row.capacity !== null ? `/${row.capacity}` : ""}`}
+                        unit="seats"
+                      >
+                        <MicroBar
+                          value={row.seats}
+                          max={row.capacity ?? Math.max(row.seats, 1)}
+                          color="success"
+                        />
+                      </Metric>
+                      <Metric
+                        label="Budget"
+                        value={formatMoney(row.spent)}
+                        unit={`of ${formatMoney(row.allocated)}`}
+                      >
+                        {/* Past 95% of the allocation the bar turns danger — the point at
+                            which someone needs to look before it goes over. */}
+                        <MicroBar
+                          value={row.spent}
+                          max={row.allocated || 1}
+                          color={row.spentRatio > 0.95 ? "danger" : "accent"}
+                        />
+                      </Metric>
+                    </dl>
+
+                    <Countdown
+                      date={row.event.eventDate}
+                      now={now}
+                      size="sm"
+                      className="lg:w-16 lg:items-end"
                     />
-                  </td>
-                  <td className="w-40 px-4 py-3">
-                    <span className="font-mono text-caption tabular-nums text-ink">
-                      {row.seats}
-                      {row.capacity !== null ? `/${row.capacity}` : ""}
-                    </span>
-                    <span className="ml-1 text-meta text-ink-muted">seats</span>
-                    <MicroBar
-                      value={row.seats}
-                      max={row.capacity ?? Math.max(row.seats, 1)}
-                      color="success"
-                      className="mt-1.5"
-                    />
-                  </td>
-                  <td className="w-44 px-4 py-3">
-                    <span className="font-mono text-caption tabular-nums text-ink">
-                      {formatMoney(row.spent)}
-                    </span>
-                    <span className="ml-1 text-meta text-ink-muted">
-                      of {formatMoney(row.allocated)}
-                    </span>
-                    {/* Past 95% of the allocation the bar turns danger — the point at
-                        which someone needs to look before it goes over. */}
-                    <MicroBar
-                      value={row.spent}
-                      max={row.allocated || 1}
-                      color={row.spentRatio > 0.95 ? "danger" : "accent"}
-                      className="mt-1.5"
-                    />
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <StatusDot
-                      status={row.event.status}
-                      tone={toneForStatus(row.event.status)}
-                      className="justify-end"
-                    />
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-          <tfoot>
-            <tr className="border-t border-rule">
-              <td colSpan={6} className="px-4 py-3">
-                <Link href="/templates" className="text-[13px] text-accent hover:underline">
-                  Start an event from a template →
+                  </div>
                 </Link>
-              </td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <Link href="/templates" className="inline-block text-[13px] text-accent hover:underline">
+          Start an event from a template
+        </Link>
+      </section>
+    </div>
+  );
+}
+
+function Metric({
+  label,
+  value,
+  unit,
+  children,
+}: {
+  label: string;
+  value: string;
+  unit: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="min-w-0">
+      <dt className="text-meta text-ink-muted">{label}</dt>
+      <dd className="mt-1">
+        <span className="text-caption font-medium tabular-nums text-ink">{value}</span>
+        <span className="ml-1 text-meta text-ink-muted">{unit}</span>
+        <span className="mt-1.5 block">{children}</span>
+      </dd>
     </div>
   );
 }

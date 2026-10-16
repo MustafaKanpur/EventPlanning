@@ -34,21 +34,21 @@ export default async function EventVolunteerSignupPage({
         </div>
 
         {event.status === "CANCELLED" ? (
-          <p className="rounded-[3px] bg-panel-alt px-4 py-3 text-center text-sm text-danger">
+          <p className="rounded-md bg-panel-alt px-4 py-3 text-center text-sm text-danger">
             This event has been cancelled.
           </p>
         ) : searchParams.success === "1" ? (
-          <p className="border border-rule bg-panel-alt px-4 py-3 text-center text-sm text-ink">
+          <p className="rounded-lg border border-rule bg-panel-alt px-4 py-3 text-center text-sm text-ink">
             You&apos;re signed up. See you there!
           </p>
         ) : open.length === 0 ? (
-          <p className="border border-rule bg-panel-alt px-4 py-3 text-center text-sm text-ink">
+          <p className="rounded-lg border border-rule bg-panel-alt px-4 py-3 text-center text-sm text-ink">
             {event.shifts.length === 0 ? "No shifts are open yet." : "Every shift is full."}
           </p>
         ) : (
           <form action={signUp} className="space-y-4">
             {searchParams.error && (
-              <p role="alert" className="border border-rule bg-panel-alt px-4 py-3 text-sm text-danger">
+              <p role="alert" className="rounded-lg border border-rule bg-panel-alt px-4 py-3 text-sm text-danger">
                 {searchParams.error}
               </p>
             )}
@@ -62,7 +62,7 @@ export default async function EventVolunteerSignupPage({
                 return (
                   <label
                     key={shift.id}
-                    className={`flex gap-3 rounded-[3px] border border-rule px-3 py-2 text-sm ${left <= 0 ? "opacity-50" : "cursor-pointer"}`}
+                    className={`flex gap-3 rounded-md border border-rule px-3 py-2 text-sm ${left <= 0 ? "opacity-50" : "cursor-pointer"}`}
                   >
                     <input type="radio" name="shiftId" value={shift.id} required disabled={left <= 0} className="mt-1" />
                     <span>
@@ -81,7 +81,7 @@ export default async function EventVolunteerSignupPage({
             <VolunteerFields />
             <button
               type="submit"
-              className="w-full rounded-[3px] bg-accent px-4 py-2 text-sm font-medium text-panel transition hover:opacity-90"
+              className="w-full rounded-md bg-accent px-4 py-2 text-sm font-medium text-panel transition hover:opacity-90"
             >
               Sign up
             </button>

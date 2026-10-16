@@ -8,19 +8,19 @@ import { enterDemo } from "./demo-actions";
 // here while native accounts come first.
 export default function SignInPage({ searchParams }: { searchParams: { verified?: string; expired?: string } }) {
   return (
-    <div className="w-full max-w-sm space-y-8 border border-rule bg-panel p-8">
+    <div className="rounded-lg w-full max-w-sm space-y-8 border border-rule bg-panel p-8">
       <div className="space-y-2 text-center">
-        <h1 className="font-display text-[26px] font-normal leading-tight text-ink">Event Planning</h1>
-        <p className="text-[13px] text-ink-muted">Sign in to your team workspace</p>
+        <h1 className="font-display text-[34px] leading-none text-ink">Sign in</h1>
+        <p className="text-[13px] text-ink-muted">Pick up where your team left off.</p>
       </div>
 
       {searchParams.verified && (
-        <p className="border border-rule bg-panel-alt px-4 py-3 text-[13px] text-ink">
+        <p className="rounded-lg border border-rule bg-panel-alt px-4 py-3 text-[13px] text-ink">
           Email confirmed. Sign in to continue.
         </p>
       )}
       {searchParams.expired && (
-        <p className="border border-rule px-4 py-3 text-[13px] text-danger">
+        <p className="rounded-lg border border-rule px-4 py-3 text-[13px] text-danger">
           That link was invalid or has expired. Sign in to get a new one.
         </p>
       )}
@@ -38,9 +38,9 @@ export default function SignInPage({ searchParams }: { searchParams: { verified?
         <form action={enterDemo}>
           <button
             type="submit"
-            className="h-11 w-full border border-rule bg-panel px-4 text-ui text-ink transition-colors hover:bg-panel-alt"
+            className="rounded-md h-11 w-full border border-rule bg-panel px-4 text-ui text-ink transition-colors hover:bg-panel-alt"
           >
-            Try the demo →
+            Try the demo
           </button>
         </form>
         <p className="mt-2 text-center text-meta text-ink-muted">

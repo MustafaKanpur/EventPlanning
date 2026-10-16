@@ -2,12 +2,15 @@
 
 import { signOut } from "next-auth/react";
 
-export function SignOutButton() {
+/** `onDark` is for the top bar; elsewhere it sits on a light page. */
+export function SignOutButton({ onDark = false }: { onDark?: boolean }) {
   return (
     <button
       type="button"
       onClick={() => signOut({ callbackUrl: "/signin" })}
-      className="flex h-11 items-center text-ui text-ink-muted transition-colors hover:text-ink"
+      className={`flex h-11 items-center whitespace-nowrap text-ui transition-colors ${
+        onDark ? "text-panel/65 hover:text-panel" : "text-ink-muted hover:text-ink"
+      }`}
     >
       Sign out
     </button>

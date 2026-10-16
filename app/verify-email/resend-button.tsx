@@ -10,7 +10,7 @@ function Submit() {
     <button
       type="submit"
       disabled={pending}
-      className="h-11 w-full border border-rule bg-panel px-4 text-ui text-ink transition-colors hover:bg-panel-alt disabled:opacity-50"
+      className="rounded-md h-11 w-full border border-rule bg-panel px-4 text-ui text-ink transition-colors hover:bg-panel-alt disabled:opacity-50"
     >
       {pending ? "Sending…" : "Send the link again"}
     </button>

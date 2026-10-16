@@ -44,7 +44,7 @@ export type ScreenTab = { id: string; name: string; icon: string | null };
 type Tab = { key: string; label: string; href: string };
 
 function tabClasses(active: boolean, extra = "") {
-  return `flex h-11 items-center border-b-[3px] px-1 text-ui transition-colors ${
+  return `flex h-11 items-center whitespace-nowrap border-b-[3px] px-1 text-ui transition-colors ${
     active
       ? "border-accent font-medium text-ink"
       : "border-transparent text-ink-muted hover:text-ink"
@@ -152,10 +152,10 @@ export function EventTabs({
 
   return (
     <div className="flex items-center justify-between gap-6 border-b border-rule">
-      <nav aria-label="Event sections">
+      <nav aria-label="Event sections" className="-mb-px min-w-0 overflow-x-auto">
         <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
           <SortableContext items={tabs.map((t) => t.key)} strategy={horizontalListSortingStrategy}>
-            <ul className="-mb-px flex items-center gap-6">
+            <ul className="flex items-center gap-6">
               {tabs.map((tab) => (
                 <li key={tab.key}>
                   <SortableTab tab={tab} active={pathname?.startsWith(tab.href) ?? false} />
@@ -170,7 +170,7 @@ export function EventTabs({
       {canBuild && (
         <Link
           href={`/builder/new?eventId=${eventId}`}
-          className="flex h-11 shrink-0 items-center text-ui text-ink-muted transition-colors hover:text-ink"
+          className="flex h-11 shrink-0 items-center whitespace-nowrap text-ui text-ink-muted transition-colors hover:text-ink"
         >
           + New screen
         </Link>

@@ -47,7 +47,7 @@ export function EventSettingsMenu({
         aria-label="Event settings"
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex h-11 w-11 items-center justify-center border border-rule text-ink-muted transition-colors hover:bg-panel-alt hover:text-ink"
+        className="rounded-md flex h-11 w-11 items-center justify-center border border-rule text-ink-muted transition-colors hover:bg-panel-alt hover:text-ink"
       >
         <IconSettings size={16} />
       </button>
@@ -56,7 +56,7 @@ export function EventSettingsMenu({
         <div
           role="menu"
           aria-label="Event settings"
-          className="absolute right-0 z-40 mt-1 w-52 border border-rule bg-panel py-1"
+          className="rounded-md absolute right-0 z-40 mt-1 w-52 border border-rule bg-panel py-1"
         >
           {/* Teams running the same event annually are the reuse case this exists for. */}
           <details className="border-b border-rule-soft">
@@ -71,20 +71,20 @@ export function EventSettingsMenu({
                 name="name"
                 defaultValue={`${eventName} template`}
                 aria-label="Template name"
-                className="w-full border border-rule bg-panel px-2 py-1.5 text-[13px] text-ink focus:border-accent focus:outline-none"
+                className="rounded-md w-full border border-rule bg-panel px-2 py-1.5 text-[13px] text-ink focus:border-accent focus:outline-none"
               />
               <textarea
                 name="description"
                 rows={2}
                 placeholder="What it is for (optional)"
-                className="w-full border border-rule bg-panel px-2 py-1.5 text-[13px] text-ink focus:border-accent focus:outline-none"
+                className="rounded-md w-full border border-rule bg-panel px-2 py-1.5 text-[13px] text-ink focus:border-accent focus:outline-none"
               />
               <p className="text-meta text-ink-muted">
                 Copies this event&apos;s screens and fields. No records are included.
               </p>
               <button
                 type="submit"
-                className="h-11 w-full bg-accent text-ui text-panel transition-opacity hover:opacity-90"
+                className="rounded-md h-11 w-full bg-accent text-ui text-panel transition-opacity hover:opacity-90"
               >
                 Save template
               </button>

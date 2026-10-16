@@ -41,9 +41,9 @@ import { saveRegistrationForm } from "@/app/(app)/events/[eventId]/registrants/f
 import type { BuilderField, BuilderScreenInput } from "./types";
 
 const field =
-  "w-full border border-rule bg-panel px-3 py-2 text-[13px] text-ink focus:border-accent focus:outline-none";
+  "rounded-md w-full border border-rule bg-panel px-3 py-2 text-[13px] text-ink focus:border-accent focus:outline-none";
 const small =
-  "border border-rule bg-panel px-2 py-1 text-xs text-ink focus:border-accent focus:outline-none";
+  "rounded-md border border-rule bg-panel px-2 py-1 text-xs text-ink focus:border-accent focus:outline-none";
 
 /** View type comes first because it constrains which fields make sense. */
 const VIEW_TYPES: { value: ViewType; label: string; blurb: string }[] = [
@@ -669,7 +669,7 @@ export function ScreenBuilder({
           </section>
 
           {error && (
-            <p className="border border-rule px-4 py-2 text-[13px] text-danger" role="alert">
+            <p className="rounded-md border border-rule px-4 py-2 text-[13px] text-danger" role="alert">
               {error}
             </p>
           )}
@@ -679,7 +679,7 @@ export function ScreenBuilder({
               type="button"
               onClick={() => submit(false)}
               disabled={isPending}
-              className="h-11 bg-accent px-4 text-ui text-panel transition-opacity hover:opacity-90 disabled:opacity-50"
+              className="rounded-md h-11 bg-accent px-4 text-ui text-panel transition-opacity hover:opacity-90 disabled:opacity-50"
             >
               {isPending ? "Saving…" : definitionId ? "Save screen" : "Create screen"}
             </button>
@@ -688,7 +688,7 @@ export function ScreenBuilder({
                 type="button"
                 onClick={() => submit(true)}
                 disabled={isPending}
-                className="h-11 border border-rule px-4 text-ui text-ink transition-colors hover:bg-panel-alt disabled:opacity-50"
+                className="rounded-md h-11 border border-rule px-4 text-ui text-ink transition-colors hover:bg-panel-alt disabled:opacity-50"
               >
                 Save as draft
               </button>
@@ -723,7 +723,7 @@ export function ScreenBuilder({
 
       <DragOverlay>
         {activeDragLabel && (
-          <div className="border border-accent bg-panel px-3 py-2 text-[13px] text-ink">
+          <div className="rounded-md border border-accent bg-panel px-3 py-2 text-[13px] text-ink">
             {activeDragLabel}
           </div>
         )}

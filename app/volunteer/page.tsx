@@ -10,7 +10,7 @@ export default function VolunteerSignupPage({ searchParams }: { searchParams: { 
           <p className="text-sm text-ink-muted">Leave your details and the team will be in touch.</p>
         </div>
         {searchParams.success === "1" ? (
-          <p className="border border-rule bg-panel-alt px-4 py-3 text-center text-sm text-ink">
+          <p className="rounded-lg border border-rule bg-panel-alt px-4 py-3 text-center text-sm text-ink">
             Thanks! Your sign-up is waiting for approval.
           </p>
         ) : (
@@ -19,7 +19,7 @@ export default function VolunteerSignupPage({ searchParams }: { searchParams: { 
             <VolunteerFields />
             <button
               type="submit"
-              className="w-full rounded-[3px] bg-accent px-4 py-2 text-sm font-medium text-panel transition hover:opacity-90"
+              className="w-full rounded-md bg-accent px-4 py-2 text-sm font-medium text-panel transition hover:opacity-90"
             >
               Sign up
             </button>

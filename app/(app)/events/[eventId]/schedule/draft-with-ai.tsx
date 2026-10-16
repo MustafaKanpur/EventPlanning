@@ -5,7 +5,7 @@ import { useState, useTransition } from "react";
 import { draftScheduleItems, type DraftState } from "./actions";
 
 const field =
-  "w-full border border-rule bg-panel px-3 py-2 text-[13px] text-ink focus:border-accent focus:outline-none";
+  "rounded-md w-full border border-rule bg-panel px-3 py-2 text-[13px] text-ink focus:border-accent focus:outline-none";
 
 /**
  * Proposes blocks into "Not yet placed". react-dom 18 has no useFormStatus, so the
@@ -28,7 +28,7 @@ export function DraftWithAi({ eventId }: { eventId: string }) {
   return (
     <section>
       <h2 className="mb-2 text-micro text-ink-muted">Draft with AI</h2>
-      <form onSubmit={submit} className="space-y-2 border border-rule bg-panel p-3">
+      <form onSubmit={submit} className="rounded-lg space-y-2 border border-rule bg-panel p-3">
         <label htmlFor="ai-draft-prompt" className="block text-caption text-ink-muted">
           Describe the programme. Proposed blocks appear on the schedule in blue for you to approve.
         </label>
@@ -45,7 +45,7 @@ export function DraftWithAi({ eventId }: { eventId: string }) {
         <button
           type="submit"
           disabled={isPending || !prompt.trim()}
-          className="h-11 w-full bg-accent text-ui text-panel transition-opacity hover:opacity-90 disabled:opacity-50"
+          className="rounded-md h-11 w-full bg-accent text-ui text-panel transition-opacity hover:opacity-90 disabled:opacity-50"
         >
           {isPending ? "Drafting…" : "Draft blocks"}
         </button>

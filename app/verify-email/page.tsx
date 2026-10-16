@@ -13,7 +13,7 @@ export default async function VerifyEmailPage({ searchParams }: { searchParams: 
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-ground px-4">
-      <div className="w-full max-w-sm space-y-6 border border-rule bg-panel p-8">
+      <div className="rounded-lg w-full max-w-sm space-y-6 border border-rule bg-panel p-8">
         <div className="space-y-2 text-center">
           <h1 className="font-display text-[26px] font-normal leading-tight text-ink">Check your email</h1>
           <p className="text-[13px] text-ink-muted">

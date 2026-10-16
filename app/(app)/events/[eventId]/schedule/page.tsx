@@ -47,7 +47,7 @@ import { DraggableRow, DropZone, EndSlot, GapSlot, RunOfShowDnd, UnplacedBlock }
 import { PrintTrigger } from "./print-trigger";
 
 const field =
-  "w-full border border-rule bg-panel px-3 py-2 text-[13px] text-ink focus:border-accent focus:outline-none";
+  "rounded-md w-full border border-rule bg-panel px-3 py-2 text-[13px] text-ink focus:border-accent focus:outline-none";
 const textButton = "text-ui text-ink-muted transition-colors hover:text-ink";
 
 function toLocalInputValue(date: Date) {
@@ -215,7 +215,7 @@ export default async function RunOfShowPage({
                   name="startTime"
                   type="time"
                   defaultValue={minutesToTimeValue(event?.startMinutes ?? DEFAULT_START_MINUTES)}
-                  className="h-8 border border-rule bg-panel px-2 font-mono text-meta tabular-nums text-ink focus:border-accent focus:outline-none"
+                  className="rounded-md h-8 border border-rule bg-panel px-2 font-mono text-meta tabular-nums text-ink focus:border-accent focus:outline-none"
                 />
                 <button type="submit" className="text-meta text-ink-muted hover:text-ink">
                   Set
@@ -235,7 +235,7 @@ export default async function RunOfShowPage({
                 <summary className={`cursor-pointer list-none ${textButton}`}>+ Add block</summary>
                 <form
                   action={addBlock}
-                  className="absolute right-0 z-20 mt-2 w-80 space-y-2 border border-rule bg-panel p-4 text-left"
+                  className="rounded-lg absolute right-0 z-20 mt-2 w-80 space-y-2 border border-rule bg-panel p-4 text-left"
                 >
                   <div className="space-y-1">
                     <label className="block text-caption text-ink-muted" htmlFor="block-title">
@@ -273,7 +273,7 @@ export default async function RunOfShowPage({
                   </p>
                   <button
                     type="submit"
-                    className="h-11 w-full bg-accent text-ui text-panel transition-opacity hover:opacity-90"
+                    className="rounded-md h-11 w-full bg-accent text-ui text-panel transition-opacity hover:opacity-90"
                   >
                     Add block
                   </button>
@@ -283,7 +283,7 @@ export default async function RunOfShowPage({
             </div>
           </div>
 
-          <div className="border border-rule bg-panel">
+          <div className="rounded-lg border border-rule bg-panel">
             {timeline.length === 0 ? (
               <p className="px-4 py-10 text-[13px] text-ink-muted">
                 No blocks yet. Add the first one to start the run of show.
@@ -376,7 +376,7 @@ export default async function RunOfShowPage({
         <aside className="w-full shrink-0 space-y-8 lg:w-[330px] print:hidden">
           <section>
             <h2 className="mb-2 text-micro text-ink-muted">Blocking the schedule</h2>
-            <div className="border border-rule bg-panel">
+            <div className="rounded-lg border border-rule bg-panel">
               {blockers.length === 0 ? (
                 <p className="px-3 py-4 text-[13px] text-ink-muted">
                   Nothing blocking. Every block has a time and no task is overdue.
@@ -416,7 +416,7 @@ export default async function RunOfShowPage({
           <section>
             <h2 className="mb-2 text-micro text-ink-muted">Not yet placed</h2>
             {unplaced.length === 0 ? (
-              <p className="border border-rule bg-panel px-3 py-4 text-[13px] text-ink-muted">
+              <p className="rounded-lg border border-rule bg-panel px-3 py-4 text-[13px] text-ink-muted">
                 Every block has a slot.
               </p>
             ) : (
@@ -531,7 +531,7 @@ function BlockRow({
             <summary className="cursor-pointer list-none text-meta text-ink-muted hover:text-ink">
               Edit
             </summary>
-            <div className="absolute right-0 z-20 mt-2 w-80 space-y-2 border border-rule bg-panel p-4">
+            <div className="rounded-lg absolute right-0 z-20 mt-2 w-80 space-y-2 border border-rule bg-panel p-4">
               <form action={editBlock} className="space-y-2">
                 <input name="title" defaultValue={block.title} required className={field} />
                 <input
@@ -563,7 +563,7 @@ function BlockRow({
                 />
                 <button
                   type="submit"
-                  className="h-11 w-full bg-accent text-ui text-panel transition-opacity hover:opacity-90"
+                  className="rounded-md h-11 w-full bg-accent text-ui text-panel transition-opacity hover:opacity-90"
                 >
                   Save
                 </button>
@@ -691,7 +691,7 @@ function BlockRow({
             <input name="dueDate" type="date" className={`${field} w-auto`} />
             <button
               type="submit"
-              className="h-11 border border-rule px-3 text-ui text-ink hover:bg-panel-alt"
+              className="rounded-md h-11 border border-rule px-3 text-ui text-ink hover:bg-panel-alt"
             >
               Add
             </button>
@@ -744,7 +744,7 @@ function UnplacedEditor({
   const remove = deleteScheduleItem.bind(null, eventId, block.id);
 
   return (
-    <details className="border border-t-0 border-rule bg-panel">
+    <details className="rounded-b-md border border-t-0 border-rule bg-panel">
       <summary className="cursor-pointer list-none px-3 py-1.5 text-meta text-ink-muted hover:text-ink">
         Edit
       </summary>
@@ -805,7 +805,7 @@ function UnplacedEditor({
             placeholder="Notes"
             className={field}
           />
-          <button type="submit" className="h-11 w-full bg-accent text-ui text-panel transition-opacity hover:opacity-90">
+          <button type="submit" className="rounded-md h-11 w-full bg-accent text-ui text-panel transition-opacity hover:opacity-90">
             Save
           </button>
         </form>

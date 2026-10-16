@@ -22,12 +22,12 @@ export function Countdown({
   const urgent = days < 14;
 
   const figureSize =
-    size === "lg" ? "text-[34px] leading-none" : size === "sm" ? "text-[15px]" : "text-[22px]";
+    size === "lg" ? "text-[44px]" : size === "sm" ? "text-[26px]" : "text-[34px]";
 
   if (days === 0) {
     return (
       <span className={`inline-flex flex-col ${className}`}>
-        <span className={`font-mono tabular-nums text-danger ${figureSize}`}>Today</span>
+        <span className={`font-display leading-none text-danger ${figureSize}`}>Today</span>
         <span className="text-meta text-ink-muted">event day</span>
       </span>
     );
@@ -37,7 +37,7 @@ export function Countdown({
   return (
     <span className={`inline-flex flex-col ${className}`}>
       <span
-        className={`font-mono tabular-nums ${figureSize} ${
+        className={`font-display leading-none ${figureSize} ${
           urgent && !past ? "text-danger" : past ? "text-ink-muted" : "text-ink"
         }`}
       >

@@ -40,6 +40,18 @@ table {
   outline-offset: 2px;
 }
 
+/* Fields get a soft halo on focus on top of the accent border they already switch to. */
+input:focus,
+select:focus,
+textarea:focus {
+  box-shadow: 0 0 0 3px rgb(59 52 200 / 0.14);
+}
+
+/* Pressing a button nudges it down a pixel — the only feedback a click gets. */
+button:not(:disabled):active {
+  transform: translateY(1px);
+}
+
 ::selection {
   background: #dcdaf7;
   color: var(--ink);
@@ -69,5 +81,105 @@ table {
   .pending-bar-stripe {
     animation: none;
     width: 100%;
+  }
+}
+
+/*
+ * Motion. Three things move, each because it reports something:
+ * - progress bars fill on load, so the eye reads how far along each line is;
+ * - a slow ring around anything live (an event in progress, the block on stage now);
+ * - the "now" line on the sign-in run of show.
+ * All of it stops under reduced motion.
+ */
+@keyframes bar-fill {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+.bar-fill {
+  transform-origin: left;
+  animation: bar-fill 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes live-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(3.2);
+    opacity: 0;
+  }
+}
+
+.live-dot {
+  position: relative;
+}
+
+.live-dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: inherit;
+  animation: live-ring 2.4s ease-out infinite;
+}
+
+@keyframes now-line {
+  from {
+    top: 6%;
+  }
+  to {
+    top: 94%;
+  }
+}
+
+.now-line {
+  animation: now-line 14s linear infinite alternate;
+}
+
+@layer components {
+  /*
+   * Ticket-stub perforation: a dashed rule with a notch punched out top and bottom. The
+   * notches are real circles in the page colour, not a gradient mask, so the stub must sit
+   * on bg-ground for the cut-out to read.
+   */
+  .perforation {
+    position: relative;
+    border-left: 1.5px dashed var(--rule);
+  }
+
+  .perforation::before,
+  .perforation::after {
+    content: "";
+    position: absolute;
+    left: -8px;
+    width: 14px;
+    height: 14px;
+    border-radius: 9999px;
+    background: var(--ground);
+    border: 1px solid var(--rule);
+  }
+
+  .perforation::before {
+    top: -8px;
+    clip-path: inset(50% 0 0 0);
+  }
+
+  .perforation::after {
+    bottom: -8px;
+    clip-path: inset(0 0 50% 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar-fill,
+  .live-dot::after,
+  .now-line {
+    animation: none;
+  }
+  button:not(:disabled):active {
+    transform: none;
   }
 }

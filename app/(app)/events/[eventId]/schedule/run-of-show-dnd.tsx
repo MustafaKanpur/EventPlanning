@@ -82,7 +82,7 @@ export function RunOfShowDnd({
       {children}
       <DragOverlay>
         {draggingLabel && (
-          <div className="border border-accent bg-panel px-3 py-2 text-ui text-ink">
+          <div className="rounded-md border border-accent bg-panel px-3 py-2 text-ui text-ink">
             {draggingLabel}
           </div>
         )}
@@ -113,7 +113,7 @@ export function GapSlot({
     <div
       ref={setNodeRef}
       className={`flex items-center gap-4 border-b border-rule-soft px-4 py-3 ${
-        isOver ? "bg-accent text-panel" : "bg-warn/[0.09] text-ink"
+        isOver ? "bg-accent text-panel" : "bg-ground text-ink-muted"
       }`}
     >
       <span
@@ -262,7 +262,7 @@ export function UnplacedBlock({
         {...listeners}
         {...attributes}
         type="button"
-        className={`w-full cursor-grab border border-rule bg-panel px-3 py-2 text-left transition-colors hover:bg-panel-alt ${
+        className={`${editor ? "rounded-t-md" : "rounded-md"} w-full cursor-grab border border-rule bg-panel px-3 py-2 text-left transition-colors hover:bg-panel-alt ${
           isDragging ? "opacity-40" : ""
         }`}
       >

@@ -40,10 +40,10 @@ export function TopBar({
 
   return (
     <header className="h-bar bg-ink text-panel">
-      <div className="mx-auto flex h-full max-w-6xl items-center justify-between gap-6 px-6">
-        <div className="flex items-center gap-8">
-          <div className="flex items-center gap-2">
-            <Link href="/dashboard" className="font-display text-[22px] leading-none tracking-[0.01em] text-panel">
+      <div className="mx-auto flex h-full max-w-6xl items-center justify-between gap-4 px-4 sm:gap-6 sm:px-6">
+        <div className="flex min-w-0 items-center gap-4 sm:gap-8">
+          <div className="flex shrink-0 items-center gap-2">
+            <Link href="/dashboard" className="whitespace-nowrap font-display text-[22px] leading-none tracking-[0.01em] text-panel">
               Event Planning
             </Link>
             <a
@@ -52,13 +52,13 @@ export function TopBar({
               rel="noopener noreferrer"
               aria-label="Source code on GitHub"
               title="Source on GitHub"
-              className="flex h-11 w-9 items-center justify-center text-panel/60 transition-colors hover:text-panel"
+              className="hidden h-11 w-9 items-center justify-center text-panel/60 sm:flex transition-colors hover:text-panel"
             >
               <IconGitHub size={16} />
             </a>
           </div>
-          <nav aria-label="Primary">
-            <ul className="flex items-center gap-6">
+          <nav aria-label="Primary" className="min-w-0 overflow-x-auto">
+            <ul className="flex items-center gap-5 sm:gap-6">
               {nav.map((item) => {
                 const active = activeHref === item.href;
                 return (
@@ -66,7 +66,7 @@ export function TopBar({
                     <Link
                       href={item.href}
                       aria-current={active ? "page" : undefined}
-                      className={`flex h-bar items-center border-b-[3px] pt-[3px] text-ui transition-colors hover:text-panel ${
+                      className={`flex h-bar items-center whitespace-nowrap border-b-[3px] pt-[3px] text-ui transition-colors hover:text-panel ${
                         active ? "border-highlight text-panel" : "border-transparent text-panel/65"
                       }`}
                     >
@@ -79,7 +79,7 @@ export function TopBar({
           </nav>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex shrink-0 items-center gap-4">
           <time
             dateTime={today.toISOString().slice(0, 10)}
             className="hidden font-mono text-caption tabular-nums text-panel/65 sm:block"

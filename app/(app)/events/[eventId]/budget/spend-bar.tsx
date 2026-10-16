@@ -20,7 +20,7 @@ export function SpendBar({ totals, goal }: { totals: BudgetTotals; goal: number 
 
   return (
     <section aria-label="Budget usage">
-      <div className="relative flex h-10 w-full overflow-hidden border border-rule bg-panel">
+      <div className="rounded-md relative flex h-10 w-full overflow-hidden border border-rule bg-panel">
         {segments.map((segment) => (
           <div
             key={segment.key}
@@ -44,7 +44,7 @@ export function SpendBar({ totals, goal }: { totals: BudgetTotals; goal: number 
         {segments.map((segment) => (
           <li key={segment.key} className="flex items-center gap-2">
             <span
-              className={`h-2 w-2 shrink-0 border border-rule ${SEGMENT_STYLE[segment.key].bg}`}
+              className={`rounded-lg h-2 w-2 shrink-0 border border-rule ${SEGMENT_STYLE[segment.key].bg}`}
               aria-hidden="true"
             />
             {SEGMENT_STYLE[segment.key].label}

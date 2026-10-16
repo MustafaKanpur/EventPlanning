@@ -31,7 +31,7 @@ export function ViewPreview({
 
   if (shown.length === 0) {
     return (
-      <div className="border border-rule bg-panel px-4 py-10 text-center text-[13px] text-ink-muted">
+      <div className="rounded-lg border border-rule bg-panel px-4 py-10 text-center text-[13px] text-ink-muted">
         Add a field to see the {viewType.toLowerCase()} take shape.
       </div>
     );
@@ -68,7 +68,7 @@ export function ViewPreview({
     }
   };
 
-  const wrap = "border border-rule bg-panel";
+  const wrap = "rounded-lg border border-rule bg-panel";
 
   if (viewType === "BOARD") {
     const group = shown.find((f) => f.type === "SELECT");
@@ -91,7 +91,7 @@ export function ViewPreview({
               {column.label}
             </span>
             {i < 2 && (
-              <div className="mt-2 border border-rule bg-panel p-2">
+              <div className="rounded-lg mt-2 border border-rule bg-panel p-2">
                 <p className="truncate text-meta text-ink">{sample(shown[0], i)}</p>
                 {shown[1] && (
                   <p className="truncate text-meta text-ink-muted">{sample(shown[1], i)}</p>

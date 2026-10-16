@@ -72,7 +72,7 @@ export function DeleteEvent({
             aria-modal="true"
             aria-labelledby="delete-event-title"
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-md border border-rule bg-panel p-6"
+            className="rounded-lg w-full max-w-md border border-rule bg-panel p-6"
           >
             <h2 id="delete-event-title" className="font-display text-[24px] font-normal leading-tight text-ink">
               Delete “{eventName}”?
@@ -91,7 +91,7 @@ export function DeleteEvent({
                 type="button"
                 onClick={() => setOpen(false)}
                 disabled={isPending}
-                className="h-11 border border-rule px-4 text-ui text-ink transition-colors hover:bg-panel-alt disabled:opacity-60"
+                className="rounded-md h-11 border border-rule px-4 text-ui text-ink transition-colors hover:bg-panel-alt disabled:opacity-60"
               >
                 Cancel
               </button>

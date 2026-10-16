@@ -26,7 +26,7 @@ export function CopyLink({ url }: { url: string }) {
         readOnly
         value={url}
         onFocus={(e) => e.currentTarget.select()}
-        className="h-11 w-full min-w-0 border border-rule bg-panel px-3 font-mono text-caption text-ink-muted focus:border-accent focus:outline-none sm:w-[22rem]"
+        className="rounded-md h-11 w-full min-w-0 border border-rule bg-panel px-3 font-mono text-caption text-ink-muted focus:border-accent focus:outline-none sm:w-[22rem]"
       />
       <button
         type="button"
@@ -38,7 +38,7 @@ export function CopyLink({ url }: { url: string }) {
             /* the input is selectable as a fallback */
           }
         }}
-        className="h-11 shrink-0 border border-rule px-3 text-ui text-ink transition-colors hover:bg-panel-alt"
+        className="rounded-md h-11 shrink-0 border border-rule px-3 text-ui text-ink transition-colors hover:bg-panel-alt"
       >
         <span aria-live="polite">{copied ? "Copied" : "Copy"}</span>
       </button>

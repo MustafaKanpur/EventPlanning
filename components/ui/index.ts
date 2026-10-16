@@ -5,3 +5,4 @@ export { StatusDot, toneForStatus, type Tone } from "./status-dot";
 export { MicroBar } from "./micro-bar";
 export { Countdown } from "./countdown";
 export { Money } from "./money";
+export { DateStub } from "./date-stub";

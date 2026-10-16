@@ -8,7 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { EventTabs } from "@/components/event-tabs";
 import { EventSettingsMenu } from "@/components/event-settings-menu";
 import { ShareEventButton } from "@/components/share-event-button";
-import { Countdown } from "@/components/ui";
+import { Countdown, DateStub } from "@/components/ui";
 import { IconExport } from "@/components/ui/icon";
 import { describeEventContents } from "@/lib/event-summary";
 import { formatLongDate, formatTime } from "@/lib/format";
@@ -85,31 +85,32 @@ export default async function EventLayout({
           <span className="text-ink">{event.name}</span>
         </nav>
 
-        <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
-          <div className="min-w-0">
-            <h1 className="font-display text-[36px] font-normal leading-[1.1] tracking-[-0.01em] text-ink">
-              {event.name}
-            </h1>
-            <p className="mt-1 text-[13px] text-ink-muted">{subtitle}</p>
-          </div>
+        <div className="mt-3 flex rounded-lg border border-rule bg-panel">
+          <DateStub date={event.eventDate} size="lg" className="hidden py-4 sm:flex" />
+          <div className="flex min-w-0 flex-1 sm:perforation flex-wrap items-center justify-between gap-4 px-5 py-4">
+            <div className="min-w-0">
+              <h1 className="font-display text-[40px] leading-none text-ink">{event.name}</h1>
+              <p className="mt-2 text-[13px] text-ink-muted">{subtitle}</p>
+            </div>
 
-          <div className="flex shrink-0 items-center gap-4">
-            <Countdown date={event.eventDate} />
-            <Link
-              href={`/events/${event.id}/schedule?print=1`}
-              className="flex h-11 items-center gap-2 border border-rule px-3 text-ui text-ink transition-colors hover:bg-panel-alt"
-            >
-              <IconExport size={15} />
-              Export run sheet
-            </Link>
-            <ShareEventButton />
-            {canDelete && (
-              <EventSettingsMenu
-                eventId={event.id}
-                eventName={event.name}
-                summary={describeEventContents(event._count)}
-              />
-            )}
+            <div className="flex flex-wrap items-center gap-3">
+              <Countdown date={event.eventDate} className="mr-2" />
+              <Link
+                href={`/events/${event.id}/schedule?print=1`}
+                className="rounded-md flex h-11 items-center gap-2 border border-rule px-3 text-ui text-ink transition-colors hover:bg-panel-alt"
+              >
+                <IconExport size={15} />
+                Export run sheet
+              </Link>
+              <ShareEventButton />
+              {canDelete && (
+                <EventSettingsMenu
+                  eventId={event.id}
+                  eventName={event.name}
+                  summary={describeEventContents(event._count)}
+                />
+              )}
+            </div>
           </div>
         </div>
       </div>

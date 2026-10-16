@@ -38,7 +38,7 @@ export function TimelineView({ records, fields, dateField }: Shared) {
 
   return (
     <div className="flex flex-col gap-6 lg:flex-row">
-      <div className="min-w-0 flex-1 border border-rule bg-panel">
+      <div className="rounded-lg min-w-0 flex-1 border border-rule bg-panel">
         {dated.length === 0 ? (
           <p className="px-4 py-10 text-[13px] text-ink-muted">
             Nothing has a {dateField.label.toLowerCase()} yet.
@@ -66,11 +66,11 @@ export function TimelineView({ records, fields, dateField }: Shared) {
       <aside className="w-full shrink-0 lg:w-[260px]">
         <h3 className="mb-2 text-micro text-ink-muted">Not yet placed</h3>
         {undated.length === 0 ? (
-          <p className="border border-rule bg-panel px-3 py-4 text-[13px] text-ink-muted">
+          <p className="rounded-lg border border-rule bg-panel px-3 py-4 text-[13px] text-ink-muted">
             Everything has a date.
           </p>
         ) : (
-          <ul className="divide-y divide-rule-soft border border-rule bg-panel">
+          <ul className="rounded-lg overflow-hidden divide-y divide-rule-soft border border-rule bg-panel">
             {undated.map((record) => (
               <li key={record.id} className="px-3 py-2 text-[13px] text-ink">
                 {label(record, fields)}
@@ -208,7 +208,7 @@ export function LedgerView({
   }
 
   return (
-    <div className="overflow-x-auto border border-rule bg-panel">
+    <div className="rounded-lg overflow-x-auto border border-rule bg-panel">
       <table className="w-full border-collapse text-left">
         <thead>
           <tr className="h-head border-b border-rule bg-panel-alt">

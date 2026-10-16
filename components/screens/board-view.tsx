@@ -156,7 +156,7 @@ function Card({ record, fields }: { record: ScreenRecord; fields: FieldDefinitio
       style={style}
       {...attributes}
       {...listeners}
-      className={`cursor-grab border border-rule bg-panel p-2 ${isDragging ? "opacity-40" : ""}`}
+      className={`rounded-lg cursor-grab border border-rule bg-panel p-2 ${isDragging ? "opacity-40" : ""}`}
     >
       {shown.length === 0 ? (
         <p className="text-[13px] text-ink-muted">Untitled</p>
