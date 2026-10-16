@@ -49,3 +49,24 @@ table {
     text-wrap: balance;
   }
 }
+
+/* The indeterminate stripe in components/pending-bar.tsx. */
+@keyframes pending-bar-slide {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}
+
+.pending-bar-stripe {
+  animation: pending-bar-slide 1.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pending-bar-stripe {
+    animation: none;
+    width: 100%;
+  }
+}

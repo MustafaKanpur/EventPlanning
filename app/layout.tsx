@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Archivo, Instrument_Serif, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
+import { PendingBar } from "@/components/pending-bar";
 import { AuthProvider } from "@/components/providers/auth-provider";
 
 // UI / body.
@@ -43,6 +44,7 @@ export default function RootLayout({
         className={`${archivo.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable} bg-ground font-sans text-ink antialiased`}
       >
         <AuthProvider>{children}</AuthProvider>
+        <PendingBar />
       </body>
     </html>
   );
