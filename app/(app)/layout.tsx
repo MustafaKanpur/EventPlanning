@@ -1,7 +1,6 @@
-import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
-import { authOptions } from "@/lib/auth";
+import { getSession } from "@/lib/current-team-member";
 import { AppChrome } from "@/components/app-chrome";
 
 export default async function AppLayout({
@@ -9,7 +8,7 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getServerSession(authOptions);
+  const session = await getSession();
   if (!session) redirect("/signin");
   if (!session.user.emailVerified) redirect("/verify-email");
 

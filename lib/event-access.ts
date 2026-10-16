@@ -2,6 +2,7 @@ import "server-only";
 
 import { Prisma, type Ability, type TeamMember } from "@prisma/client";
 import { notFound, redirect } from "next/navigation";
+import { cache } from "react";
 
 import { getCurrentTeamMember } from "@/lib/current-team-member";
 import { prisma } from "@/lib/prisma";
@@ -21,7 +22,9 @@ export function accessibleEvents(me: Pick<TeamMember, "id" | "role" | "isDemo">)
  * Read-only means nothing higher has been granted: a READ_ONLY org role, no abilities,
  * and READ_ONLY on every event they're on. Any one higher grant lifts it entirely.
  */
-export async function isReadOnly(me: Pick<TeamMember, "id" | "role">): Promise<boolean> {
+// Cached per request, keyed by the `me` object, which pages get from the cached
+// getCurrentTeamMember, so repeat calls in one render share one query.
+export const isReadOnly = cache(async (me: Pick<TeamMember, "id" | "role">): Promise<boolean> => {
   if (me.role !== "READ_ONLY") return false;
   const higher = await prisma.teamMember.count({
     where: {
@@ -30,7 +33,7 @@ export async function isReadOnly(me: Pick<TeamMember, "id" | "role">): Promise<b
     },
   });
   return higher === 0;
-}
+});
 
 /**
  * Whether the viewer may see people's contact and personal details. Read-only accounts see
