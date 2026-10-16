@@ -6,7 +6,7 @@ import { IconGitHub } from "./icon";
 export type NavItem = { label: string; href: string };
 
 /**
- * Nav for the dark chrome bar. The yellow marker under the active section is the one
+ * Nav for the dark chrome bar. The leaf-green marker under the active section is the one
  * loud element in the system; nothing else uses `highlight`.
  *
  * NOTE: the brief lists Events · Vendors · People · Templates. Vendors still has no

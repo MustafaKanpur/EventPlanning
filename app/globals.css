@@ -8,18 +8,18 @@
  * stop we don't have. Keep these in step with tailwind.config.ts.
  */
 :root {
-  --ground: #eceef2;
+  --ground: #eeefe8;
   --panel: #ffffff;
-  --panel-alt: #e3e6ec;
-  --ink: #1a1f36;
-  --ink-muted: #586079;
-  --rule: #cbd0db;
-  --rule-soft: #e2e5eb;
-  --accent: #3b34c8;
-  --highlight: #ffd23f;
-  --warn: #8f5e00;
-  --danger: #c0341d;
-  --success: #23855a;
+  --panel-alt: #e3e6dc;
+  --ink: #2a2119;
+  --ink-muted: #6a5f52;
+  --rule: #d2d0c3;
+  --rule-soft: #e7e6dd;
+  --accent: #2f6b3f;
+  --highlight: #a9d46f;
+  --warn: #8a5a12;
+  --danger: #b3361f;
+  --success: #4f8a34;
 }
 
 body {
@@ -44,7 +44,7 @@ table {
 input:focus,
 select:focus,
 textarea:focus {
-  box-shadow: 0 0 0 3px rgb(59 52 200 / 0.14);
+  box-shadow: 0 0 0 3px rgb(47 107 63 / 0.16);
 }
 
 /* Pressing a button nudges it down a pixel — the only feedback a click gets. */
@@ -53,7 +53,7 @@ button:not(:disabled):active {
 }
 
 ::selection {
-  background: #dcdaf7;
+  background: #d6e5cf;
   color: var(--ink);
 }
 

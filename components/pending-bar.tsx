@@ -40,7 +40,7 @@ export function PendingBar() {
     <div
       role="progressbar"
       aria-label="Loading"
-      className="fixed inset-x-0 bottom-0 z-50 h-[3px] overflow-hidden bg-accent/20"
+      className="fixed inset-x-0 bottom-0 z-50 h-1.5 overflow-hidden bg-accent/25"
     >
       <div className="pending-bar-stripe h-full w-1/3 bg-accent" />
     </div>

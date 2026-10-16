@@ -34,19 +34,19 @@ const config: Config = {
     },
     extend: {
       colors: {
-        ground: "#ECEEF2", // cool concrete — the page itself
+        ground: "#EEEFE8", // pale sage stone — the page itself
         panel: "#FFFFFF", // raised surfaces
-        "panel-alt": "#E3E6EC", // table headers, rails
-        ink: "#1A1F36", // primary text, and the top bar
-        "ink-muted": "#586079", // secondary text
-        rule: "#CBD0DB", // container borders
-        "rule-soft": "#E2E5EB", // row dividers
-        accent: "#3B34C8", // ultramarine — links, primary progress
-        highlight: "#FFD23F", // gaffer-tape yellow — only the active marker in the dark bar
-        warn: "#8F5E00", // pending, gaps, unpaid
-        danger: "#C0341D", // overdue, over budget
-        success: "#23855A", // registration fill
-        proposed: "#A2389C", // AI-proposed blocks awaiting approval
+        "panel-alt": "#E3E6DC", // table headers, rails
+        ink: "#2A2119", // walnut — primary text, and the top bar
+        "ink-muted": "#6A5F52", // secondary text
+        rule: "#D2D0C3", // container borders
+        "rule-soft": "#E7E6DD", // row dividers
+        accent: "#2F6B3F", // forest green — links, primary progress
+        highlight: "#A9D46F", // leaf green — only the active marker in the dark bar
+        warn: "#8A5A12", // pending, gaps, unpaid
+        danger: "#B3361F", // overdue, over budget
+        success: "#4F8A34", // registration fill
+        proposed: "#3E6A9E", // AI-proposed blocks awaiting approval
       },
       fontFamily: {
         sans: ["var(--font-public-sans)", "ui-sans-serif", "sans-serif"],
